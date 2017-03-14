@@ -124,7 +124,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	@Override
 	public void notifyWeightChange(double newWeight) {
 		// TODO Auto-generated method stub
-
 	}
 
 }
