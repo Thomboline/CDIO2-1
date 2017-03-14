@@ -34,9 +34,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		if (socketHandler!=null && weightController!=null){
 			//Makes this controller interested in messages from the socket
 			socketHandler.registerObserver(this);
-			//Starts socketHandler in own thread
+			//Starts socketHandler & weightController in own threads
 			new Thread(socketHandler).start();
-			//TODO set up weightController - Look above for inspiration (Keep it simple ;))
 			new Thread(weightController).start();
 			weightController.registerObserver(this);
 
@@ -50,26 +49,45 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	public void notify(SocketInMessage message) {
 		switch (message.getType()) {
 		case B:
+			double newWeight = Double.parseDouble(message.getMessage());
+			notifyWeightChange(newWeight);
 			break;
 		case D:
 			weightController.showMessagePrimaryDisplay(message.getMessage()); 
 			break;
 		case Q:
+			weightController.unRegisterObserver(this);
+			socketHandler.unRegisterObserver(this);
+			System.exit(0); 
 			break;
 		case RM204:
+			//Not specified
 			break;
-		case RM208:
+		case RM208: //Need work
+			weightController.showMessagePrimaryDisplay(message.getMessage());
+			try { 
+				//User input
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " crlf"));
 			break;
 		case S:
+			//Need to make notifyWeightChange()
 			break;
 		case T:
+			//Need to make notifyWeightChange()
 			break;
 		case DW:
+			weightController.showMessagePrimaryDisplay(null);
+			socketHandler.sendMessage(new SocketOutMessage("A"));
 			break;
 		case K:
 			handleKMessage(message);
 			break;
 		case P111:
+			String upToNCharacters = message.getMessage().substring(0, Math.min(message.getMessage().length(), 30));
+			weightController.showMessageSecondaryDisplay(upToNCharacters);
 			break;
 		}
 
@@ -94,6 +112,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			break;
 		}
 	}
+	
 	//Listening for UI input
 	@Override
 	public void notifyKeyPress(KeyPress keyPress) {
@@ -107,14 +126,25 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case TEXT:
 			break;
 		case ZERO:
+			//Not specified
 			break;
 		case C:
+			//Suspect its to delete either the text in the console or on the display. 
 			break;
 		case EXIT:
+			weightController.unRegisterObserver(this);
+			socketHandler.unRegisterObserver(this);
+			System.exit(0); 
 			break;
 		case SEND:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
+			}
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				//Udfør funktion
+			}
+			if (keyState.equals(KeyState.K2) || keyState.equals(KeyState.K3) ){
+				//Udfør ikke funktionen
 			}
 			break;
 		}
@@ -124,6 +154,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	@Override
 	public void notifyWeightChange(double newWeight) {
 		// TODO Auto-generated method stub
+		//Possibly need get & set methods for Tarér
 
 	}
 
