@@ -82,8 +82,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " crlf"));
 			break;
 		case S:
-			//Sådan her?
-			notifyWeightChange(currentWeight);
+			socketHandler.sendMessage(new SocketOutMessage("" + currentWeight));
 			break;
 		case T:
 			//Sådan her?
@@ -154,7 +153,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			weightController.showMessagePrimaryDisplay("" + currentWeight);
 			break;
 		case C:
-			//Suspect its to delete either the text in the console or on the display. 
+			weightController.showMessageSecondaryDisplay(null);
 			break;
 		case EXIT:
 			weightController.unRegisterObserver(this);
