@@ -1,5 +1,8 @@
 package controller;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 import socket.ISocketController;
 import socket.ISocketObserver;
 import socket.SocketInMessage;
@@ -22,6 +25,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	private double currentWeight = 0.0000;
 	private double containerWeight;
 	
+	DecimalFormat df = new DecimalFormat ("0.000");
+	
 
 	public MainController(ISocketController socketHandler, IWeightInterfaceController weightInterfaceController) {
 		this.init(socketHandler, weightInterfaceController);
@@ -42,7 +47,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			new Thread(socketHandler).start();
 			new Thread(weightController).start();
 			weightController.registerObserver(this);
-			WeightInterfaceControllerGUI.getInstance().onSliderValueChange(currentWeight);
 
 		} else {
 			System.err.println("No controllers injected!");
@@ -125,7 +129,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	@Override
 	public void notifyKeyPress(KeyPress keyPress) {
 		//TODO implement logic for handling input from ui
-		WeightInterfaceControllerGUI.getInstance().showMessageSecondaryDisplay("Du har trykket på en knap");
+		//Fjern "Du har trykket på..." når programmet er klart
+		weightController.showMessageSecondaryDisplay("Du har trykket på en knap");
 		System.out.println(keyPress.getCharacter());
 		switch (keyPress.getType()) {
 		case SOFTBUTTON:
@@ -134,7 +139,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			containerWeight = currentWeight;
 			notifyWeightChange(-currentWeight);
 			currentWeight = 0.0000;
-			WeightInterfaceControllerGUI.getInstance().showMessagePrimaryDisplay("" + currentWeight);
+			weightController.showMessagePrimaryDisplay("" + currentWeight);
 			
 			break;
 		case TEXT:
@@ -142,8 +147,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case ZERO:
 			currentWeight = 0.0000;
 			containerWeight = 0.0000;
-			WeightInterfaceControllerGUI.getInstance().showMessageSecondaryDisplay("Vægten er nulstillet.");
-			WeightInterfaceControllerGUI.getInstance().showMessagePrimaryDisplay("" + currentWeight);
+			weightController.showMessageSecondaryDisplay("Vægten er nulstillet.");
+			weightController.showMessagePrimaryDisplay("" + currentWeight);
 			break;
 		case C:
 			//Suspect its to delete either the text in the console or on the display. 
@@ -170,8 +175,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 
 	@Override
 	public void notifyWeightChange(double newWeight) {
-		currentWeight += newWeight;
-		WeightInterfaceControllerGUI.getInstance().showMessageSecondaryDisplay("Du har ændret vægten med " + newWeight + " gram.");
+		currentWeight = newWeight;
+		weightController.showMessagePrimaryDisplay(df.format(currentWeight) + "kg");
 		// TODO Auto-generated method stub
 		//Possibly need get & set methods for Tarér
 
