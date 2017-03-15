@@ -73,22 +73,24 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			//Not specified
 			break;
 		case RM208: //Need work
-			weightController.showMessagePrimaryDisplay(message.getMessage());
+			weightController.showMessageSecondaryDisplay(message.getMessage());
 			try { 
-				//User input
+		//		String secDisplayResponse = 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " crlf"));
 			break;
 		case S:
-			
-			
-			//Need to make notifyWeightChange()
+			//Sådan her?
+			notifyWeightChange(currentWeight);
 			break;
 		case T:
+			//Sådan her?
+			containerWeight = currentWeight;
+			notifyWeightChange(0);
+			weightController.showMessagePrimaryDisplay("" + currentWeight);
 			
-			//Need to make notifyWeightChange()
 			break;
 		case DW:
 			weightController.showMessagePrimaryDisplay(null);
@@ -136,10 +138,11 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case SOFTBUTTON:
 			break;
 		case TARA:
-			containerWeight = currentWeight;
+			containerWeight += currentWeight;
 			notifyWeightChange(-currentWeight);
 			currentWeight = 0.0000;
 			weightController.showMessagePrimaryDisplay("" + currentWeight);
+			weightController.showMessageSecondaryDisplay("Weight of Tara: " + containerWeight + " kg");
 			
 			break;
 		case TEXT:
@@ -181,5 +184,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		//Possibly need get & set methods for Tarér
 
 	}
+
 
 }

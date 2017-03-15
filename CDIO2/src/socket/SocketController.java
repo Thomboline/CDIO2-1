@@ -11,7 +11,8 @@ import java.util.Set;
 
 import socket.SocketInMessage.SocketMessageType;
 
-public class SocketController implements ISocketController {
+public class SocketController implements ISocketController 
+{
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
 	//TODO Maybe add some way to keep track of multiple connections?
 	private BufferedReader inStream;
@@ -29,16 +30,20 @@ public class SocketController implements ISocketController {
 	}
 
 	@Override
-	public void sendMessage(SocketOutMessage message) {
-		if (outStream!=null){
+	public void sendMessage(SocketOutMessage message) 
+	{
+		if (outStream!=null)
+		{
 			//TODO send something over the socket! 
-		} else {
+		} else 
+		{
 			//TODO maybe tell someone that connection is closed?
 		}
 	}
 
 	@Override
-	public void run() {
+	public void run() 
+	{
 		//TODO some logic for listening to a socket //(Using try with resources for auto-close of socket)
 		try (ServerSocket listeningSocket = new ServerSocket(Port)){ 
 			while (true){
@@ -61,6 +66,8 @@ public class SocketController implements ISocketController {
 			//.readLine is a blocking call 
 			//TODO How do you handle simultaneous input and output on socket?
 			//TODO this only allows for one open connection - how would you handle multiple connections?
+			//ServerThread st = new ServerThread(activeSocket); // SKal m�ske laves en Thread //
+			
 			while (true){
 				inLine = inStream.readLine();
 				System.out.println(inLine);
@@ -68,21 +75,44 @@ public class SocketController implements ISocketController {
 				switch (inLine.split(" ")[0]) {
 				case "RM20": // Display a message in the secondary display and wait for response
 					//TODO implement logic for RM command
+					if(inLine.split(" ")[1].equals("8"))
+					{
+						try {
+						notifyObservers(new SocketInMessage(SocketMessageType.RM208, inLine.split("8")[1]));
+						System.out.println("Du har skrevet RM208");
+						}
+						catch (ArrayIndexOutOfBoundsException e) {
+							notifyObservers(new SocketInMessage(SocketMessageType.RM208, "INDTAST NR"));
+						}
+					}
+					else if(inLine.split(" ")[1].equals("4"))
+					{
+						notifyObservers(new SocketInMessage(SocketMessageType.RM204, inLine.split("8")[1]));
+						System.out.println("Du har skrevet RM204");
+					}
+					else 
+						System.out.println("Du har tastet forkert.");
 					break;
 				case "D":// Display a message in the primary display
-					//TODO Refactor to make sure that faulty messages doesn't break the system
-					notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 			
+					//TODO Refactor to make sure that faulty messages doesn't break the system					
+					if(erDetEtTal(inLine.split(" ")[1])){
+					notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 
+					}
 					break;
 				case "DW": //Clear primary display
+					notifyObservers(new SocketInMessage(SocketMessageType.DW, inLine.split(" ")[0]));
 					//TODO implement
 					break;
 				case "P111": //Show something in secondary display
+					notifyObservers(new SocketInMessage(SocketMessageType.P111, inLine.split(" ")[1]));
 					//TODO implement
 					break;
 				case "T": // Tare the weight
+					notifyObservers(new SocketInMessage(SocketMessageType.T, inLine.split(" ")[1]));
 					//TODO implement
 					break;
 				case "S": // Request the current load
+					notifyObservers(new SocketInMessage(SocketMessageType.S, inLine.split(" ")[1]));
 					//TODO implement
 					break;
 				case "K":
@@ -113,5 +143,22 @@ public class SocketController implements ISocketController {
 		}
 	}
 
+	private static boolean erDetEtTal(String x){
+		boolean Bob = true;
+		String s = x;
+		int dotCount = 0;
+		for(int i = 0; i < s.length(); i++){
+			if(s.charAt(i) >= 48 && s.charAt(i) <= 57) {
+			}
+			else if(s.charAt(i) == 46){
+				dotCount++;
+			}
+			else Bob = false;
+		}
+		if(dotCount > 1){
+			Bob = false;
+		}
+		return Bob;
+	}
 }
 
