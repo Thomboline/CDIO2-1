@@ -60,9 +60,23 @@ public class SocketController implements ISocketController
 	private void waitForConnections(ServerSocket listeningSocket) {
 		try {
 			Socket activeSocket = listeningSocket.accept(); //Blocking call
-			inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-			outStream = new DataOutputStream(activeSocket.getOutputStream());
-			String inLine;
+			new Thread() 
+			{
+				public void run() 
+                {
+                	try
+                	{
+                		inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+            			outStream = new DataOutputStream(activeSocket.getOutputStream());
+            			String inLine;
+                    }
+                    catch(Exception e)
+                	{
+                    	System.err.println(e);
+                	}
+                }
+            }.start();
+            
 			//.readLine is a blocking call 
 			//TODO How do you handle simultaneous input and output on socket?
 			//TODO this only allows for one open connection - how would you handle multiple connections?
