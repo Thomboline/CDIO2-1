@@ -128,7 +128,7 @@ public class SocketController implements ISocketController
 					break;
 				case "D":// Display a message in the primary display
 					//TODO Refactor to make sure that faulty messages doesn't break the system					
-					if(erDetEtTal(inLine.split(" ")[1])){
+					if(isItANumber(inLine.split(" ")[1])){
 					notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 
 					}
 					break;
@@ -176,8 +176,8 @@ public class SocketController implements ISocketController
 		}
 	}
 
-	private static boolean erDetEtTal(String x){
-		boolean Bob = true;
+	private static boolean isItANumber(String x){
+		boolean b = true;
 		String s = x;
 		int dotCount = 0;
 		for(int i = 0; i < s.length(); i++){
@@ -186,12 +186,12 @@ public class SocketController implements ISocketController
 			else if(s.charAt(i) == 46){
 				dotCount++;
 			}
-			else Bob = false;
+			else b = false;
 		}
 		if(dotCount > 1){
-			Bob = false;
+			b = false;
 		}
-		return Bob;
+		return b;
 	}
 }
 
