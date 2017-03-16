@@ -162,7 +162,7 @@ public class SocketController implements ISocketController
 					break;
 				default: //Something went wrong?
 					//TODO implement
-					notifyObservers(new SocketInMessage(SocketMessageType.DW, "default"));
+					notifyObservers(new SocketInMessage(SocketMessageType.wrongCommand, "wrongCommand"));
 					break;
 				}
 			}
