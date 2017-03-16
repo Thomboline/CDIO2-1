@@ -131,19 +131,19 @@ public class SocketController implements ISocketController
 					break;
 				case "DW": //Clear primary display
 					notifyObservers(new SocketInMessage(SocketMessageType.DW, "DW"));
-					//TODO implement
+					//TODO implementation done!
 					break;
 				case "P111": //Show something in secondary display
 					notifyObservers(new SocketInMessage(SocketMessageType.P111, inLine.split(" ")[1]));
-					//TODO implement
+					//TODO implementation done!
 					break;
 				case "T": // Tare the weight
 					notifyObservers(new SocketInMessage(SocketMessageType.T, "T"));
-					//TODO implement
+					//TODO implementation done!
 					break;
 				case "S": // Request the current load
 					notifyObservers(new SocketInMessage(SocketMessageType.S, "S"));
-					//TODO implement
+					//TODO implementation done!
 					break;
 				case "K":
 					if (inLine.split(" ").length>1){
@@ -153,17 +153,18 @@ public class SocketController implements ISocketController
 				case "B": // Set the load
 					if(isItANumber(inLine.split(" ")[1])){
 						notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1]));
+					//TODO implementation done!
 					}
 					//TODO implement
 					break;
 				case "Q": // Quit
 					notifyObservers(new SocketInMessage(SocketMessageType.DW, "Q"));
-					//TODO implement
+					//TODO implementation done!
 					break;
 				default: //Something went wrong?
-					//TODO implement
 					notifyObservers(new SocketInMessage(SocketMessageType.wrongCommand, "wrongCommand"));
 					break;
+				//TODO implementation done!
 				}
 			}
 		} catch (IOException e) {
