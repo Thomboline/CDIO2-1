@@ -32,6 +32,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		this.init(socketHandler, weightInterfaceController);
 	}
 
+	//
 	@Override
 	public void init(ISocketController socketHandler, IWeightInterfaceController weightInterfaceController) {
 		this.socketHandler = socketHandler;
@@ -62,7 +63,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			notifyWeightChange(newWeight);
 			break;
 		case D:
-			weightController.showMessagePrimaryDisplay(message.getMessage()); 
+			weightController.showMessageSecondaryDisplay(message.getMessage()); 
 			break;
 		case Q:
 			weightController.unRegisterObserver(this);
@@ -75,20 +76,22 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case RM208: //Need work
 			weightController.showMessageSecondaryDisplay(message.getMessage());
 			try { 
-		// Have to open a stream for the client i think? 
-		//		String secDisplayResponse = 
+				// Have to open a stream for the client i think?
+				// String secDisplayResponse = 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " crlf"));
 			break;
 		case S:
-			socketHandler.sendMessage(new SocketOutMessage("" + currentWeight));
+			//Sådan her?
+			socketHandler.sendMessage(new SocketOutMessage("Current weight: " + currentWeight));
 			break;
 		case T:
-			containerWeight = currentWeight;
+			//Sådan her?
+			containerWeight += currentWeight;
 			notifyWeightChange(0);
-			weightController.showMessagePrimaryDisplay("" + currentWeight);
+			weightController.showMessageSecondaryDisplay("Weight of tara: " + containerWeight + " kg");
 			
 			break;
 		case DW:
@@ -138,58 +141,64 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
+			
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				
+							
 			}
+			
 			break;
 		case TARA:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+			
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
 				containerWeight += currentWeight;
 				notifyWeightChange(-currentWeight);
-				this.currentWeight = 0.0000;
+				currentWeight = 0.0000;
 				weightController.showMessagePrimaryDisplay("" + currentWeight);
 				weightController.showMessageSecondaryDisplay("Weight of Tara: " + containerWeight + " kg");
 			}
+			
 			break;
 		case TEXT:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
 				
 			}
+			
 			break;
 		case ZERO:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				this.currentWeight = 0.0000;
-				this.containerWeight = 0.0000;
-				weightController.showMessageSecondaryDisplay("Vægten er nulstillet.");
-				weightController.showMessagePrimaryDisplay("" + currentWeight);	
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+			currentWeight = 0.0000;
+			containerWeight = 0.0000;
+			weightController.showMessageSecondaryDisplay("Vægten er nulstillet.");
+			weightController.showMessagePrimaryDisplay("" + currentWeight);
 			}
 			break;
-		case C:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+		case CANCEL:
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				weightController.showMessageSecondaryDisplay(null);
+			//Suspect its to delete either the text in the console or on the display. 
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+			weightController.showMessageSecondaryDisplay("null");
 			}
 			break;
 		case EXIT:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				weightController.unRegisterObserver(this);
-				socketHandler.unRegisterObserver(this);
-				System.exit(0); 	
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+			weightController.unRegisterObserver(this);
+			socketHandler.unRegisterObserver(this);
 			}
+			System.exit(0); 
 			break;
 		case SEND:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
@@ -197,6 +206,9 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
 				socketHandler.sendMessage(new SocketOutMessage("" + currentWeight));
+			}
+			if (keyState.equals(KeyState.K2) || keyState.equals(KeyState.K3) ){
+				break;
 			}
 			break;
 		}
