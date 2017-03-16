@@ -75,12 +75,11 @@ public class SocketController implements ISocketController
 	private void waitForConnections(ServerSocket listeningSocket) {
 		try {
 			Socket activeSocket = listeningSocket.accept();
-			inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-			outStream = new DataOutputStream(activeSocket.getOutputStream());
 			String inLine;
-			
-		
-			/*new Thread() 
+			/*inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+			outStream = new DataOutputStream(activeSocket.getOutputStream());
+			String inLine;*/
+			new Thread() 
 			{
 				public void run() 
                 {
@@ -88,14 +87,14 @@ public class SocketController implements ISocketController
                 	{
                 		inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
             			outStream = new DataOutputStream(activeSocket.getOutputStream());
-            			String inLine;
+            			
                     }
                     catch(Exception e)
                 	{
                     	System.err.println(e);
                 	}
                 }
-            }.start();*/
+            }.start();
             
 			//.readLine is a blocking call 
 			//TODO How do you handle simultaneous input and output on socket?
