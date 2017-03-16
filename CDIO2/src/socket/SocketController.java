@@ -8,23 +8,32 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import socket.SocketInMessage.SocketMessageType;
 
 public class SocketController implements ISocketController 
 {
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
-	//TODO Maybe add some way to keep track of multiple connections?
-	Map<String, SocketThread> connectedClients = new HashMap<String, SocketThread>();
-	
+	Map<String, SocketThread> connectedClients = new HashMap<String, SocketThread>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
 	private BufferedReader inStream;
 	private DataOutputStream outStream;
 
 
+	public void viewClients()
+	{
+		for(Entry<String, SocketThread> entry : connectedClients.entrySet()) 
+		{
+		    System.out.println("Key: " + entry.getKey() + " Values: " + entry.getValue());
+		}
+	}
+	
 	@Override
 	public void registerObserver(ISocketObserver observer) 
 	{
