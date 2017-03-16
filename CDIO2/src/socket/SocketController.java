@@ -79,7 +79,7 @@ public class SocketController implements ISocketController
 			Socket activeSocket = listeningSocket.accept();
 			new SocketThread(activeSocket, this).start();
 			
-
+			//tis
 			/*
 			String inLine;
 			inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
