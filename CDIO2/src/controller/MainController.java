@@ -105,6 +105,10 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			String upToNCharacters = message.getMessage().substring(0, Math.min(message.getMessage().length(), 30));
 			weightController.showMessageSecondaryDisplay(upToNCharacters);
 			break;
+		default:
+			socketHandler.sendMessage(new SocketOutMessage("Wrong input.\nCommands: S\nT\nD\nDW\nP111\nRM20 8\nK\nB\nQ"));
+			
+			
 		}
 
 	}
