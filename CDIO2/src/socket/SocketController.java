@@ -195,7 +195,7 @@ public class SocketController implements ISocketController
 		return b;
 	}
 }
-class SocketThread extends Thread 
+class SocketThread extends Thread // Denne klasse kan bare slåes fra //
 {
 	  Socket activeSocket;
 	  String inLine;
