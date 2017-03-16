@@ -1,7 +1,5 @@
 package weight;
 
-import weight.KeyPress.KeyPressType;
-
 /**
  * DTO for user input
  * @author Christian

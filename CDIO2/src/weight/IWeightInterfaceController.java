@@ -1,7 +1,5 @@
 package weight;
 
-import weight.IWeightInterfaceController.InputType;
-
 public interface IWeightInterfaceController extends Runnable {
 	void registerObserver(IWeightInterfaceObserver uiObserver);
 	void unRegisterObserver(IWeightInterfaceObserver uiObserver);

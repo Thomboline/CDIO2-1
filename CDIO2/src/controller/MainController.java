@@ -1,8 +1,6 @@
 package controller;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 import socket.ISocketController;
 import socket.ISocketObserver;
 import socket.SocketInMessage;
@@ -10,9 +8,10 @@ import socket.SocketOutMessage;
 import weight.IWeightInterfaceController;
 import weight.IWeightInterfaceObserver;
 import weight.KeyPress;
-import weight.gui.WeightInterfaceControllerGUI;
+
 /**
- * MainController - integrating input from socket and ui. Implements ISocketObserver and IUIObserver to handle this.
+ * MainController - integrating input from socket
+ *  and ui. Implements ISocketObserver and IUIObserver to handle this.
  * @author Christian Budtz
  * @version 0.1 2017-01-24
  *
@@ -22,7 +21,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	private ISocketController socketHandler;
 	private IWeightInterfaceController weightController;
 	private KeyState keyState = KeyState.K1;
-	private double currentWeight = 0.0000;
+	private double currentWeight = 0.000;
 	private double containerWeight;
 	
 	DecimalFormat df = new DecimalFormat ("0.000");
@@ -53,7 +52,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			System.err.println("No controllers injected!");
 		}
 	}
-
+	
 	//Listening for socket input
 	@Override
 	public void notify(SocketInMessage message) {
@@ -61,9 +60,10 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case B:
 			double newWeight = Double.parseDouble(message.getMessage());
 			notifyWeightChange(newWeight);
+			weightController.showMessagePrimaryDisplay(message.getMessage() + "kg");
 			break;
 		case D:
-			weightController.showMessageSecondaryDisplay(message.getMessage()); 
+			weightController.showMessagePrimaryDisplay(message.getMessage());
 			break;
 		case Q:
 			weightController.unRegisterObserver(this);
@@ -75,27 +75,20 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			break;
 		case RM208: //Need work
 			weightController.showMessageTernaryDisplay(message.getMessage());
-			try { 
-				// Have to open a stream for the client i think?
-				// String secDisplayResponse = 
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			//TODO Implement
 			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " crlf"));
 			break;
 		case S:
-			//Sådan her?
-			socketHandler.sendMessage(new SocketOutMessage("Current weight: " + currentWeight));
+			socketHandler.sendMessage(new SocketOutMessage("S S " + this.currentWeight/1000));
 			break;
 		case T:
-			//Sådan her?
-			containerWeight += currentWeight;
+			this.containerWeight += currentWeight;
 			notifyWeightChange(0);
-			weightController.showMessageSecondaryDisplay("Weight of tara: " + containerWeight + " kg");
-			
+			weightController.showMessageSecondaryDisplay("Weight of tara: " + containerWeight + "kg");
+			socketHandler.sendMessage(new SocketOutMessage("T S " + this.containerWeight +"kg"));
 			break;
 		case DW:
-			weightController.showMessagePrimaryDisplay(null);
+			weightController.showMessagePrimaryDisplay(resetWeightChange());
 			socketHandler.sendMessage(new SocketOutMessage("DW A"));
 			break;
 		case K:
@@ -104,6 +97,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case P111:
 			String upToNCharacters = message.getMessage().substring(0, Math.min(message.getMessage().length(), 30));
 			weightController.showMessageSecondaryDisplay(upToNCharacters);
+			socketHandler.sendMessage(new SocketOutMessage("P111 A crlf"));
 			break;
 		default:
 			socketHandler.sendMessage(new SocketOutMessage("Wrong input.\nCommands: S\nT\nD\nDW\nP111\nRM20 8\nK\nB\nQ"));
@@ -148,7 +142,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
 
 				if (keyPress.getKeyNumber() == 0) {
-					
+
 				}
 				if (keyPress.getKeyNumber() == 1) {
 				
@@ -173,11 +167,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-				containerWeight += currentWeight;
-				notifyWeightChange(-currentWeight);
-				currentWeight = 0.000;
-				weightController.showMessagePrimaryDisplay(df.format(currentWeight) + "kg");
-				weightController.showMessageSecondaryDisplay("Weight of Tara: " + containerWeight + " kg");
+				this.containerWeight += this.currentWeight;
+				weightController.showMessagePrimaryDisplay(df.format(resetWeightChange()));
 			}
 			
 			break;
@@ -195,9 +186,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-			currentWeight = 0.000;
-			containerWeight = 0.000;
-			weightController.showMessagePrimaryDisplay(df.format(currentWeight) + "kg");
+				containerWeight = 0.000;
+				weightController.showMessagePrimaryDisplay(df.format(resetWeightChange()));
 			}
 			break;
 		case CANCEL:
@@ -214,10 +204,10 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-			weightController.unRegisterObserver(this);
-			socketHandler.unRegisterObserver(this);
+				weightController.unRegisterObserver(this);
+				socketHandler.unRegisterObserver(this);
+				System.exit(0); //Skal blive her !
 			}
-			System.exit(0); 
 			break;
 		case SEND:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
@@ -233,14 +223,13 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 
 	@Override
 	public void notifyWeightChange(double newWeight) {
-		currentWeight = newWeight;
+		this.currentWeight = (double) newWeight;
 		weightController.showMessagePrimaryDisplay(df.format(currentWeight) + "kg");
-		// TODO Auto-generated method stub
-		//Possibly need get & set methods for Tarér
-
 	}
 	
-	
-
-
+	public String resetWeightChange () {
+		this.currentWeight = 0.000;
+		String weight = this.currentWeight + "kg";
+		return weight;
+	}
 }
