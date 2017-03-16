@@ -22,6 +22,7 @@ public class SocketController implements ISocketController
 {
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
 	Map<String, SocketThread> connectedClients = new HashMap<String, SocketThread>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
+	
 	private BufferedReader inStream;
 	private DataOutputStream outStream;
 
@@ -65,6 +66,18 @@ public class SocketController implements ISocketController
 		//TODO send something over the socket! 
 		} else 
 		{
+			try 
+			{
+				String MessageClosed = "Connection is closed";
+				OutputStreamWriter osw = new OutputStreamWriter(outStream);
+				BufferedWriter bw = new BufferedWriter(osw);
+				bw.write(MessageClosed);
+				bw.flush();
+			} catch (IOException e1) 
+			{
+				e1.printStackTrace();
+			} 
+			
 			//TODO maybe tell someone that connection is closed?
 		}
 	}
@@ -131,8 +144,8 @@ public class SocketController implements ISocketController
 		return b;
 	}
 }
-class SocketThread extends Thread // Denne klasse kan bare slåes fra //
-{
+class SocketThread extends Thread 
+
 	  Socket activeSocket;
 	  SocketController SC;
 	  
