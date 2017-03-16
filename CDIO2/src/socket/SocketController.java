@@ -1,9 +1,11 @@
 package socket;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
@@ -20,12 +22,14 @@ public class SocketController implements ISocketController
 
 
 	@Override
-	public void registerObserver(ISocketObserver observer) {
+	public void registerObserver(ISocketObserver observer) 
+	{
 		observers.add(observer);
 	}
 
 	@Override
-	public void unRegisterObserver(ISocketObserver observer) {
+	public void unRegisterObserver(ISocketObserver observer) 
+	{
 		observers.remove(observer);
 	}
 
@@ -34,6 +38,19 @@ public class SocketController implements ISocketController
 	{
 		if (outStream!=null)
 		{
+			try 
+			{
+				OutputStreamWriter osw = new OutputStreamWriter(outStream);
+				BufferedWriter bw = new BufferedWriter(osw);
+				bw.write(message.getMessage());
+				bw.flush();
+			} catch (IOException e1) 
+			{
+				e1.printStackTrace();
+			} 
+
+
+
 			//TODO send something over the socket! 
 		} else 
 		{
@@ -45,28 +62,35 @@ public class SocketController implements ISocketController
 	public void run() 
 	{
 		//TODO some logic for listening to a socket //(Using try with resources for auto-close of socket)
-		try (ServerSocket listeningSocket = new ServerSocket(Port)){ 
-			while (true){
+		try (ServerSocket listeningSocket = new ServerSocket(Port))
+		{ 
+			while (true)
+			{
 				waitForConnections(listeningSocket); 	
 			}		
 		} catch (IOException e1) {
 			// TODO Maybe notify MainController?
 			e1.printStackTrace();
 		} 
-
-
 	}
 
-	private void waitForConnections(ServerSocket listeningSocket) {
+	private void waitForConnections(ServerSocket listeningSocket) 
+	{
 		try {
-			Socket activeSocket = listeningSocket.accept(); //Blocking call
+			Socket activeSocket = listeningSocket.accept();
+			new SocketThread(activeSocket).start();
+			
+			
+			/*
+			 
+			String inLine;
 			inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
 			outStream = new DataOutputStream(activeSocket.getOutputStream());
-			String inLine;
+
 			//.readLine is a blocking call 
 			//TODO How do you handle simultaneous input and output on socket?
 			//TODO this only allows for one open connection - how would you handle multiple connections?
-			//ServerThread st = new ServerThread(activeSocket); // SKal mï¿½ske laves en Thread //
+		
 			
 			while (true){
 				inLine = inStream.readLine();
@@ -78,8 +102,8 @@ public class SocketController implements ISocketController
 					if(inLine.split(" ")[1].equals("8"))
 					{
 						try {
-						notifyObservers(new SocketInMessage(SocketMessageType.RM208, inLine.split("8")[1]));
-						System.out.println("Du har skrevet RM208");
+							notifyObservers(new SocketInMessage(SocketMessageType.RM208, inLine.split("8")[1]));
+							System.out.println("Du har skrevet RM208");
 						}
 						catch (ArrayIndexOutOfBoundsException e) {
 							notifyObservers(new SocketInMessage(SocketMessageType.RM208, "INDTAST NR"));
@@ -95,29 +119,158 @@ public class SocketController implements ISocketController
 					break;
 				case "D":// Display a message in the primary display
 					//TODO Refactor to make sure that faulty messages doesn't break the system					
-					if(erDetEtTal(inLine.split(" ")[1])){
 					notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 
-					}
 					break;
 				case "DW": //Clear primary display
-					notifyObservers(new SocketInMessage(SocketMessageType.DW, inLine.split(" ")[0]));
-					//TODO implement
+					notifyObservers(new SocketInMessage(SocketMessageType.DW, "DW"));
+					//TODO implementation done!
 					break;
 				case "P111": //Show something in secondary display
 					notifyObservers(new SocketInMessage(SocketMessageType.P111, inLine.split(" ")[1]));
-					//TODO implement
+					//TODO implementation done!
 					break;
 				case "T": // Tare the weight
-					notifyObservers(new SocketInMessage(SocketMessageType.T, inLine.split(" ")[1]));
-					//TODO implement
+					notifyObservers(new SocketInMessage(SocketMessageType.T, "T"));
+					//TODO implementation done!
 					break;
 				case "S": // Request the current load
-					notifyObservers(new SocketInMessage(SocketMessageType.S, inLine.split(" ")[1]));
-					//TODO implement
+					notifyObservers(new SocketInMessage(SocketMessageType.S, "S"));
+					//TODO implementation done!
 					break;
 				case "K":
 					if (inLine.split(" ").length>1){
 						notifyObservers(new SocketInMessage(SocketMessageType.K, inLine.split(" ")[1]));
+					}
+					break;
+				case "B": // Set the load
+					if(isItANumber(inLine.split(" ")[1])){
+						notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1]));
+					//TODO implementation done!
+					}
+					//TODO implement
+					break;
+				case "Q": // Quit
+					notifyObservers(new SocketInMessage(SocketMessageType.DW, "Q"));
+					//TODO implementation done!
+					break;
+				default: //Something went wrong?
+					notifyObservers(new SocketInMessage(SocketMessageType.wrongCommand, "wrongCommand"));
+					break;
+				//TODO implementation done!
+				}
+			}*/
+		} catch (IOException e) {
+			//TODO maybe notify mainController?
+			e.printStackTrace();
+		}
+	}
+
+	public void notifyObservers(SocketInMessage message) 
+	{
+		for (ISocketObserver socketObserver : observers) 
+		{
+			socketObserver.notify(message);
+		}
+	}
+
+	public boolean isItANumber(String x)
+	{
+		boolean b = true;
+		String s = x;
+		int dotCount = 0;
+		for(int i = 0; i < s.length(); i++){
+			if(s.charAt(i) >= 48 && s.charAt(i) <= 57) 
+			{
+			}
+			else if(s.charAt(i) == 46)
+			{
+				dotCount++;
+			}
+			else b = false;
+		}
+		if(dotCount > 1)
+		{
+			b = false;
+		}
+		return b;
+	}
+}
+class SocketThread extends Thread // Denne klasse kan bare slåes fra //
+{
+	  Socket activeSocket;
+	  String inLine;
+	  
+	  private BufferedReader inStream;
+	  private DataOutputStream outStream;
+	  
+	  SocketController CS = new SocketController();
+	  
+	  public SocketThread(Socket activeSocket) 
+	  {
+	    this.activeSocket = activeSocket;
+	  }
+
+	  public void run() 
+	  {
+	    try 
+	    {
+	    	inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+	   	    outStream = new DataOutputStream(activeSocket.getOutputStream());
+	    	
+	    	while (true)
+	    	{
+				inLine = inStream.readLine();
+				System.out.println(inLine);
+				if (inLine==null) break;
+				switch (inLine.split(" ")[0]) 
+				{
+				case "RM20": // Display a message in the secondary display and wait for response
+					//TODO implement logic for RM command
+					if(inLine.split(" ")[1].equals("8"))
+					{
+						try 
+						{
+							CS.notifyObservers(new SocketInMessage(SocketMessageType.RM208, inLine.split("8")[1]));
+						System.out.println("Du har skrevet RM208");
+						}
+						catch (ArrayIndexOutOfBoundsException e) 
+						{
+							CS.notifyObservers(new SocketInMessage(SocketMessageType.RM208, "INDTAST NR"));
+						}
+					}
+					else if(inLine.split(" ")[1].equals("4"))
+					{
+						CS.notifyObservers(new SocketInMessage(SocketMessageType.RM204, inLine.split("8")[1]));
+						System.out.println("Du har skrevet RM204");
+					}
+					else 
+						System.out.println("Du har tastet forkert.");
+					break;
+				case "D":// Display a message in the primary display
+					//TODO Refactor to make sure that faulty messages doesn't break the system					
+					if(CS.isItANumber(inLine.split(" ")[1])){
+						CS.notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 
+					}
+					break;
+				case "DW": //Clear primary display
+					CS.notifyObservers(new SocketInMessage(SocketMessageType.DW, inLine.split(" ")[0]));
+					//TODO implement
+					break;
+				case "P111": //Show something in secondary display
+					CS.notifyObservers(new SocketInMessage(SocketMessageType.P111, inLine.split(" ")[1]));
+					//TODO implement
+					break;
+				case "T": // Tare the weight
+					CS.notifyObservers(new SocketInMessage(SocketMessageType.T, inLine.split(" ")[1]));
+					//TODO implement
+					break;
+				case "S": // Request the current load
+					CS.notifyObservers(new SocketInMessage(SocketMessageType.S, inLine.split(" ")[1]));
+					//TODO implement
+					break;
+				case "K":
+					if (inLine.split(" ").length>1){
+						CS.notifyObservers(new SocketInMessage(SocketMessageType.K, inLine.split(" ")[1]));
 					}
 					break;
 				case "B": // Set the load
@@ -131,34 +284,12 @@ public class SocketController implements ISocketController
 					break;
 				}
 			}
-		} catch (IOException e) {
-			//TODO maybe notify mainController?
-			e.printStackTrace();
-		}
-	}
+	    } 
+	    catch (IOException e) 
+	    {
+	      System.out.println(e);
+	    }
 
-	private void notifyObservers(SocketInMessage message) {
-		for (ISocketObserver socketObserver : observers) {
-			socketObserver.notify(message);
-		}
-	}
-
-	private static boolean erDetEtTal(String x){
-		boolean Bob = true;
-		String s = x;
-		int dotCount = 0;
-		for(int i = 0; i < s.length(); i++){
-			if(s.charAt(i) >= 48 && s.charAt(i) <= 57) {
-			}
-			else if(s.charAt(i) == 46){
-				dotCount++;
-			}
-			else Bob = false;
-		}
-		if(dotCount > 1){
-			Bob = false;
-		}
-		return Bob;
-	}
+	  }
 }
 
