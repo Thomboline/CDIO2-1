@@ -23,7 +23,6 @@ public class SocketController implements ISocketController
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
 	Map<String, SocketThread> connectedClients = new HashMap<String, SocketThread>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
 	
-	private BufferedReader inStream;
 	private DataOutputStream outStream;
 
 
@@ -48,10 +47,6 @@ public class SocketController implements ISocketController
 			e1.printStackTrace();
 		} 
 	}
-	
-	
-	
-	
 	
 	@Override
 	public void registerObserver(ISocketObserver observer) 
@@ -169,8 +164,6 @@ class SocketThread extends Thread
 	  SocketController SC;
 	  
 	  private BufferedReader inStream;
-	  private DataOutputStream outStream;
-	  
 	  
 	  public SocketThread(Socket activeSocket, SocketController SC ) 
 	  {
@@ -188,7 +181,7 @@ class SocketThread extends Thread
 		  try 
 		  {
 	    	inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-	   	    outStream = new DataOutputStream(activeSocket.getOutputStream());
+	   	    
 	   	   
 	   	    while (true)
 	    	{
