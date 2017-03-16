@@ -34,7 +34,7 @@ public class SocketController implements ISocketController
 		}
 	}
 	
-	public void viewClient(SocketThread Client)
+	/*public void viewClient(SocketThread Client)
 	{
 		try 
 		{
@@ -46,7 +46,7 @@ public class SocketController implements ISocketController
 		{
 			e1.printStackTrace();
 		} 
-	}
+	}*/
 	
 	@Override
 	public void registerObserver(ISocketObserver observer) 
@@ -176,7 +176,7 @@ class SocketThread extends Thread
 		  String inLine;
 		  
 		  SC.connectedClients.put(activeSocket.getInetAddress().toString(), this);
-		  SC.viewClient(this);
+		  /*SC.viewClient(this);*/
 		  
 		  try 
 		  {
