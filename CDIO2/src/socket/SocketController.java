@@ -145,6 +145,7 @@ public class SocketController implements ISocketController
 	}
 }
 class SocketThread extends Thread 
+{
 
 	  Socket activeSocket;
 	  SocketController SC;
