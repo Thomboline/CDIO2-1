@@ -46,9 +46,9 @@ public class SocketController implements ISocketController
 			{
 				e1.printStackTrace();
 			} 
-			
-			
-			
+
+
+
 			//TODO send something over the socket! 
 		} else 
 		{
@@ -76,31 +76,30 @@ public class SocketController implements ISocketController
 		try {
 			Socket activeSocket = listeningSocket.accept();
 			String inLine;
-			/*inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+			inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
 			outStream = new DataOutputStream(activeSocket.getOutputStream());
-			String inLine;*/
-			new Thread() 
-			{
-				public void run() 
-                {
-                	try
-                	{
-                		inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-            			outStream = new DataOutputStream(activeSocket.getOutputStream());
-            			
-                    }
-                    catch(Exception e)
-                	{
-                    	System.err.println(e);
-                	}
-                }
-            }.start();
-            
+//			new Thread() 
+//			{
+//				public void run() 
+//				{
+//					try
+//					{
+//						inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+//						outStream = new DataOutputStream(activeSocket.getOutputStream());
+//
+//					}
+//					catch(Exception e)
+//					{
+//						System.err.println(e);
+//					}
+//				}
+//			}.start();
+
 			//.readLine is a blocking call 
 			//TODO How do you handle simultaneous input and output on socket?
 			//TODO this only allows for one open connection - how would you handle multiple connections?
 			//ServerThread st = new ServerThread(activeSocket); // SKal m�ske laves en Thread //
-			
+
 			while (true){
 				inLine = inStream.readLine();
 				System.out.println(inLine);
@@ -111,8 +110,8 @@ public class SocketController implements ISocketController
 					if(inLine.split(" ")[1].equals("8"))
 					{
 						try {
-						notifyObservers(new SocketInMessage(SocketMessageType.RM208, inLine.split("8")[1]));
-						System.out.println("Du har skrevet RM208");
+							notifyObservers(new SocketInMessage(SocketMessageType.RM208, inLine.split("8")[1]));
+							System.out.println("Du har skrevet RM208");
 						}
 						catch (ArrayIndexOutOfBoundsException e) {
 							notifyObservers(new SocketInMessage(SocketMessageType.RM208, "INDTAST NR"));
@@ -128,9 +127,7 @@ public class SocketController implements ISocketController
 					break;
 				case "D":// Display a message in the primary display
 					//TODO Refactor to make sure that faulty messages doesn't break the system					
-					if(isItANumber(inLine.split(" ")[1])){
 					notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 
-					}
 					break;
 				case "DW": //Clear primary display
 					notifyObservers(new SocketInMessage(SocketMessageType.DW, "DW"));
@@ -141,11 +138,11 @@ public class SocketController implements ISocketController
 					//TODO implement
 					break;
 				case "T": // Tare the weight
-					notifyObservers(new SocketInMessage(SocketMessageType.T, inLine.split(" ")[1]));
+					notifyObservers(new SocketInMessage(SocketMessageType.T, "T"));
 					//TODO implement
 					break;
 				case "S": // Request the current load
-					notifyObservers(new SocketInMessage(SocketMessageType.S, inLine.split(" ")[1]));
+					notifyObservers(new SocketInMessage(SocketMessageType.S, "S"));
 					//TODO implement
 					break;
 				case "K":
@@ -154,13 +151,18 @@ public class SocketController implements ISocketController
 					}
 					break;
 				case "B": // Set the load
+					if(isItANumber(inLine.split(" ")[1])){
+						notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1]));
+					}
 					//TODO implement
 					break;
 				case "Q": // Quit
+					notifyObservers(new SocketInMessage(SocketMessageType.DW, "Q"));
 					//TODO implement
 					break;
 				default: //Something went wrong?
 					//TODO implement
+					notifyObservers(new SocketInMessage(SocketMessageType.DW, "default"));
 					break;
 				}
 			}
