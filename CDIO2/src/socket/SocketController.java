@@ -133,7 +133,7 @@ public class SocketController implements ISocketController
 					}
 					break;
 				case "DW": //Clear primary display
-					notifyObservers(new SocketInMessage(SocketMessageType.DW, inLine.split(" ")[0]));
+					notifyObservers(new SocketInMessage(SocketMessageType.DW, "DW"));
 					//TODO implement
 					break;
 				case "P111": //Show something in secondary display
