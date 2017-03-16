@@ -75,6 +75,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case RM208: //Need work
 			weightController.showMessageSecondaryDisplay(message.getMessage());
 			try { 
+		// Have to open a stream for the client i think? 
 		//		String secDisplayResponse = 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -85,7 +86,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			socketHandler.sendMessage(new SocketOutMessage("" + currentWeight));
 			break;
 		case T:
-			//Sådan her?
 			containerWeight = currentWeight;
 			notifyWeightChange(0);
 			weightController.showMessagePrimaryDisplay("" + currentWeight);
@@ -93,7 +93,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			break;
 		case DW:
 			weightController.showMessagePrimaryDisplay(null);
-			socketHandler.sendMessage(new SocketOutMessage("A"));
+			socketHandler.sendMessage(new SocketOutMessage("DW A"));
 			break;
 		case K:
 			handleKMessage(message);
@@ -135,40 +135,68 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		System.out.println(keyPress.getCharacter());
 		switch (keyPress.getType()) {
 		case SOFTBUTTON:
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
+			}
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				
+			}
 			break;
 		case TARA:
-			containerWeight += currentWeight;
-			notifyWeightChange(-currentWeight);
-			currentWeight = 0.0000;
-			weightController.showMessagePrimaryDisplay("" + currentWeight);
-			weightController.showMessageSecondaryDisplay("Weight of Tara: " + containerWeight + " kg");
-			
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
+			}
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				containerWeight += currentWeight;
+				notifyWeightChange(-currentWeight);
+				this.currentWeight = 0.0000;
+				weightController.showMessagePrimaryDisplay("" + currentWeight);
+				weightController.showMessageSecondaryDisplay("Weight of Tara: " + containerWeight + " kg");
+			}
 			break;
 		case TEXT:
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
+			}
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				
+			}
 			break;
 		case ZERO:
-			currentWeight = 0.0000;
-			containerWeight = 0.0000;
-			weightController.showMessageSecondaryDisplay("Vægten er nulstillet.");
-			weightController.showMessagePrimaryDisplay("" + currentWeight);
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
+			}
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				this.currentWeight = 0.0000;
+				this.containerWeight = 0.0000;
+				weightController.showMessageSecondaryDisplay("Vægten er nulstillet.");
+				weightController.showMessagePrimaryDisplay("" + currentWeight);	
+			}
 			break;
 		case C:
-			weightController.showMessageSecondaryDisplay(null);
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
+			}
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				weightController.showMessageSecondaryDisplay(null);
+			}
 			break;
 		case EXIT:
-			weightController.unRegisterObserver(this);
-			socketHandler.unRegisterObserver(this);
-			System.exit(0); 
+			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
+				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
+			}
+			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				weightController.unRegisterObserver(this);
+				socketHandler.unRegisterObserver(this);
+				System.exit(0); 	
+			}
 			break;
 		case SEND:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				//Udfør funktion
-			}
-			if (keyState.equals(KeyState.K2) || keyState.equals(KeyState.K3) ){
-				//Udfør ikke funktionen
+				socketHandler.sendMessage(new SocketOutMessage("" + currentWeight));
 			}
 			break;
 		}
