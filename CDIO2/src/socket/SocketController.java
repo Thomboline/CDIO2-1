@@ -202,13 +202,10 @@ class SocketThread extends Thread
 					break;
 				case "D":// Display a message in the primary display
 					//TODO Refactor to make sure that faulty messages doesn't break the system					
-					if(SC.isItANumber(inLine.split(" ")[1]))
-					{
 						SC.notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 
-					}
 					break;
 				case "DW": //Clear primary display
-					SC.notifyObservers(new SocketInMessage(SocketMessageType.DW, inLine.split(" ")[0]));
+					SC.notifyObservers(new SocketInMessage(SocketMessageType.DW, "DW"));
 					//TODO implement
 					break;
 				case "P111": //Show something in secondary display
@@ -216,11 +213,11 @@ class SocketThread extends Thread
 					//TODO implement
 					break;
 				case "T": // Tare the weight
-					SC.notifyObservers(new SocketInMessage(SocketMessageType.T, inLine.split(" ")[1]));
+					SC.notifyObservers(new SocketInMessage(SocketMessageType.T, "T"));
 					//TODO implement
 					break;
 				case "S": // Request the current load
-					SC.notifyObservers(new SocketInMessage(SocketMessageType.S, inLine.split(" ")[1]));
+					SC.notifyObservers(new SocketInMessage(SocketMessageType.S, "S"));
 					//TODO implement
 					break;
 				case "K":
@@ -230,6 +227,10 @@ class SocketThread extends Thread
 					break;
 				case "B": // Set the load
 					//TODO implement
+					if(SC.isItANumber(inLine.split(" ")[1])){
+						SC.notifyObservers(new SocketInMessage(SocketMessageType.B, inLine.split(" ")[1])); 
+					}
+
 					break;
 				case "Q": // Quit
 					//TODO implement
