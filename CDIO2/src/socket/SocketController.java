@@ -27,13 +27,31 @@ public class SocketController implements ISocketController
 	private DataOutputStream outStream;
 
 
-	public void viewClients()
+	public void viewAllClients()
 	{
 		for(Entry<String, SocketThread> entry : connectedClients.entrySet()) 
 		{
 		    System.out.println("Key: " + entry.getKey() + " Values: " + entry.getValue());
 		}
 	}
+	
+	public void viewClient(SocketThread Client)
+	{
+		try 
+		{
+			OutputStreamWriter osw = new OutputStreamWriter(outStream);
+			BufferedWriter bw = new BufferedWriter(osw);
+			bw.write(connectedClients.get(Client).toString());
+			bw.flush();
+		} catch (IOException e1) 
+		{
+			e1.printStackTrace();
+		} 
+	}
+	
+	
+	
+	
 	
 	@Override
 	public void registerObserver(ISocketObserver observer) 
@@ -165,6 +183,7 @@ class SocketThread extends Thread
 		  String inLine;
 		  
 		  SC.connectedClients.put(activeSocket.getInetAddress().toString(), this);
+		  SC.viewClient(this);
 		  
 		  try 
 		  {
