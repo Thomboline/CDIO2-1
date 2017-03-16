@@ -74,7 +74,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			//Not specified
 			break;
 		case RM208: //Need work
-			weightController.showMessageSecondaryDisplay(message.getMessage());
+			weightController.showMessageTernaryDisplay(message.getMessage());
 			try { 
 				// Have to open a stream for the client i think?
 				// String secDisplayResponse = 
@@ -145,11 +145,27 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
-			
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-							
+
+				if (keyPress.getKeyNumber() == 0) {
+					
+				}
+				if (keyPress.getKeyNumber() == 1) {
+				
+				}
+				if (keyPress.getKeyNumber() == 2) {
+				
+				}
+				if (keyPress.getKeyNumber() == 3) {
+				
+				}
+				if (keyPress.getKeyNumber() == 4) {
+				
+				}
+				if (keyPress.getKeyNumber() == 5) {
+				
+				}					
 			}
-			
 			break;
 		case TARA:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
@@ -159,8 +175,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
 				containerWeight += currentWeight;
 				notifyWeightChange(-currentWeight);
-				currentWeight = 0.0000;
-				weightController.showMessagePrimaryDisplay("" + currentWeight);
+				currentWeight = 0.000;
+				weightController.showMessagePrimaryDisplay(df.format(currentWeight) + "kg");
 				weightController.showMessageSecondaryDisplay("Weight of Tara: " + containerWeight + " kg");
 			}
 			
@@ -179,10 +195,9 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-			currentWeight = 0.0000;
-			containerWeight = 0.0000;
-			weightController.showMessageSecondaryDisplay("Vægten er nulstillet.");
-			weightController.showMessagePrimaryDisplay("" + currentWeight);
+			currentWeight = 0.000;
+			containerWeight = 0.000;
+			weightController.showMessagePrimaryDisplay(df.format(currentWeight) + "kg");
 			}
 			break;
 		case CANCEL:
@@ -191,7 +206,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			//Suspect its to delete either the text in the console or on the display. 
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-			weightController.showMessageSecondaryDisplay("null");
+			weightController.showMessageSecondaryDisplay(null);
 			}
 			break;
 		case EXIT:
@@ -209,10 +224,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				socketHandler.sendMessage(new SocketOutMessage("" + currentWeight));
-			}
-			if (keyState.equals(KeyState.K2) || keyState.equals(KeyState.K3) ){
-				break;
+				socketHandler.sendMessage(new SocketOutMessage("" + this.currentWeight));
 			}
 			break;
 		}
@@ -227,6 +239,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		//Possibly need get & set methods for Tarér
 
 	}
+	
+	
 
 
 }
