@@ -1,9 +1,11 @@
 package socket;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
@@ -34,6 +36,19 @@ public class SocketController implements ISocketController
 	{
 		if (outStream!=null)
 		{
+			try 
+			{
+				OutputStreamWriter osw = new OutputStreamWriter(outStream);
+				BufferedWriter bw = new BufferedWriter(osw);
+				bw.write(message.getMessage());
+				bw.flush();
+			} catch (IOException e1) 
+			{
+				e1.printStackTrace();
+			} 
+			
+			
+			
 			//TODO send something over the socket! 
 		} else 
 		{
@@ -59,8 +74,13 @@ public class SocketController implements ISocketController
 
 	private void waitForConnections(ServerSocket listeningSocket) {
 		try {
-			Socket activeSocket = listeningSocket.accept(); //Blocking call
-			new Thread() 
+			Socket activeSocket = listeningSocket.accept();
+			inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+			outStream = new DataOutputStream(activeSocket.getOutputStream());
+			String inLine;
+			
+		
+			/*new Thread() 
 			{
 				public void run() 
                 {
@@ -75,7 +95,7 @@ public class SocketController implements ISocketController
                     	System.err.println(e);
                 	}
                 }
-            }.start();
+            }.start();*/
             
 			//.readLine is a blocking call 
 			//TODO How do you handle simultaneous input and output on socket?
