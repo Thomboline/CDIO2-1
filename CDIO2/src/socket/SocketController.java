@@ -121,7 +121,7 @@ public class SocketController implements ISocketController
 		}
 	}
 
-	public boolean isItANumber(String x)
+	public boolean isItANumber(String x)//IT is!//
 	{
 		boolean b = true;
 		String s = x;
