@@ -1,5 +1,6 @@
 package socket;
 
+import java.util.List;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
@@ -8,13 +9,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 
 import socket.SocketInMessage.SocketMessageType;
 
@@ -22,19 +22,16 @@ public class SocketController implements ISocketController
 {
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
 	Map<String, String> connectedClients = new HashMap<String, String>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
-	int Count = 0;
-	private DataOutputStream outStream; 
+	List<DataOutputStream> dout = new ArrayList<DataOutputStream>(); 
 	
-
 	public void viewClient()
 	{
-		
 		try 
 		{
 			for(Entry<String, String> entry : connectedClients.entrySet()) 
 			{
 			    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue());
-			    OutputStreamWriter osw = new OutputStreamWriter(outStream);
+			    OutputStreamWriter osw = new OutputStreamWriter(dout.get(0));
 				BufferedWriter bw = new BufferedWriter(osw);
 				bw.write(ClientView);
 				bw.flush();
@@ -63,14 +60,17 @@ public class SocketController implements ISocketController
 	@Override
 	public void sendMessage(SocketOutMessage message) 
 	{
-		if (outStream!=null)
+		if (!dout.isEmpty())
 		{
 			try 
-			{
-				OutputStreamWriter osw = new OutputStreamWriter(outStream);
+			{	
+				for(int i = 0; i < dout.size(); i++) 
+				{
+				OutputStreamWriter osw = new OutputStreamWriter(dout.get(i));
 				BufferedWriter bw = new BufferedWriter(osw);
 				bw.write(message.getMessage());
 				bw.flush();
+				}
 			} catch (IOException e1) 
 			{
 				e1.printStackTrace();
@@ -82,10 +82,13 @@ public class SocketController implements ISocketController
 			try 
 			{
 				String MessageClosed = "Connection is closed";
-				OutputStreamWriter osw = new OutputStreamWriter(outStream);
-				BufferedWriter bw = new BufferedWriter(osw);
-				bw.write(MessageClosed);
-				bw.flush();
+				for(int i = 0; i < dout.size(); i++) {
+					OutputStreamWriter osw = new OutputStreamWriter(dout.get(i));
+					BufferedWriter bw = new BufferedWriter(osw);
+					bw.write(MessageClosed);
+					bw.flush();
+					}
+				
 			} catch (IOException e1) 
 			{
 				e1.printStackTrace();
@@ -116,15 +119,15 @@ public class SocketController implements ISocketController
 	{
 		try 
 		{
-			++Count;
-			String clientCount = Integer.toString(Count);
+			
 			Socket activeSocket = listeningSocket.accept();
-			
 			String Addr = activeSocket.getInetAddress().toString();
-			connectedClients.put(Addr, clientCount);
-			outStream = new DataOutputStream(activeSocket.getOutputStream());
-			
+			DataOutputStream temp = new DataOutputStream(activeSocket.getOutputStream());
+			dout.add(temp);	
 			new SocketThread(activeSocket, this).start();
+			int activeCount = SocketThread.activeCount()-8;
+			String clientCount = Integer.toString(activeCount);
+			connectedClients.put(Addr, clientCount);
 		
 		} 
 		catch (IOException e) 
@@ -172,6 +175,7 @@ class SocketThread extends Thread
 	  SocketController SC;
 	  
 	  private BufferedReader inStream;
+	 
 	  
 	  public SocketThread(Socket activeSocket, SocketController SC ) 
 	  {
@@ -186,6 +190,8 @@ class SocketThread extends Thread
 		  try 
 		  {
 	    	inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+	    	
+	    	
 	   	    SC.viewClient();
 	   	   
 	   	    while (true)
@@ -255,7 +261,12 @@ class SocketThread extends Thread
 					//TODO implement
 					break;
 				default: //Something went wrong?
-					//TODO implement
+					try {
+						SC.notifyObservers(new SocketInMessage(SocketMessageType.DE, inLine.split(" ")[1]));
+						} catch (ArrayIndexOutOfBoundsException e) 
+						{
+							SC.notifyObservers(new SocketInMessage(SocketMessageType.DE, " "));
+						}
 					break;
 				}
 			}
