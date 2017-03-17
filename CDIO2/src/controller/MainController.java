@@ -114,6 +114,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			break;
 		case K:
 			handleKMessage(message);
+			socketHandler.sendMessage(new SocketOutMessage("K A\r\n"));
 			break;
 		case P111:
 			String upToNCharacters = message.getMessage().substring(0, Math.min(message.getMessage().length(), 30));
