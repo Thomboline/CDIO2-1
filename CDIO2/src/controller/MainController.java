@@ -109,6 +109,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			socketHandler.sendMessage(new SocketOutMessage("P111 A \r\n"));
 			break;
 		case DE: 
+			break;
 		default:
 			socketHandler.sendMessage(new SocketOutMessage("ES \r\n"
 					+ "Wrong input, please use following commands:\n S\r\n"
