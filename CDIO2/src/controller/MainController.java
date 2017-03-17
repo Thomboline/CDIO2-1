@@ -23,6 +23,12 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	private KeyState keyState = KeyState.K1;
 	private double currentWeight = 0.000;
 	private double containerWeight;
+	private char[] msCMD = new char[32];
+	private int counter = 0;
+	private boolean isWriting, isTara;
+	private String batchnummer;
+	private String userName;
+	private int userId;
 	
 	DecimalFormat df = new DecimalFormat ("0.000");
 	
@@ -89,9 +95,10 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			break;
 		case DW:
 			resetWeightChange();
-			weightController.showMessagePrimaryDisplay(df.format(this.currentWeight));
+			
 			weightController.showMessageSecondaryDisplay(null);
 			weightController.showMessageTernaryDisplay(null);
+			weightController.showMessagePrimaryDisplay(df.format(this.currentWeight) + "kg");
 			socketHandler.sendMessage(new SocketOutMessage("DW A\r\n"));
 			break;
 		case K:
@@ -143,73 +150,105 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	public void notifyKeyPress(KeyPress keyPress) {
 		//TODO implement logic for handling input from ui
 		System.out.println(keyPress.getCharacter());
+		
+		String [] tara = new String [] {"", "", "Reset Stored-weight", "Show Stored-weight", "", ""};
+		String [] text = new String [] {"Backspace", "", "", "", "", ""};
+		String [] zero = new String [] {"", "", "", "", "Change Batch-id", "Logout"};
+		String [] empty = new String [] {"", "", "", "", "", ""};
+		
 		switch (keyPress.getType()) {
 		case SOFTBUTTON:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-
+				 
 				if (keyPress.getKeyNumber() == 0) {
-
+					if(isWriting) {
+						if(msCMD[0] != '\0') {
+						counter--;
+						msCMD[counter] = '\0';
+						String temp = new String(msCMD); 
+						weightController.showMessageSecondaryDisplay(temp);
+						}
+					}
 				}
 				if (keyPress.getKeyNumber() == 1) {
-				
+									
 				}
 				if (keyPress.getKeyNumber() == 2) {
-					weightController.showMessageTernaryDisplay(this.containerWeight + "kg");
+						this.containerWeight = 0.000;
 				}
 				if (keyPress.getKeyNumber() == 3) {
-				
+						weightController.showMessageTernaryDisplay(this.containerWeight + "kg");
 				}
 				if (keyPress.getKeyNumber() == 4) {
-				
+					//Batch-id funktion
 				}
 				if (keyPress.getKeyNumber() == 5) {
-				
+					//Log in & out funktion
 				}					
 			}
 			break;
 		case TARA:
+			isTara = true;
+			if(isWriting) {
+				tara[0] = "Backspace";
+			}
+			weightController.setSoftButtonTexts(tara);
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-				String [] texts = {
-					"", "", "Show stored wieght"	
-				};
-				weightController.setSoftButtonTexts(texts);
 				this.containerWeight += this.currentWeight;
 				notifyWeightChange(0);
 			}
 			
 			break;
 		case TEXT:
+			if(isTara) {
+				tara[0] = "Backspace";
+				weightController.setSoftButtonTexts(tara);
+			}
+			else {
+				weightController.setSoftButtonTexts(text);
+			}
+			
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-				
-			}
-			
+				isWriting = true;
+				msCMD[counter] = keyPress.getCharacter();			
+				String temp = new String(msCMD);
+				weightController.showMessageSecondaryDisplay(temp);
+				counter ++;
+			}			
 			break;
 		case ZERO:
+			isTara = false;
+			weightController.setSoftButtonTexts(zero);
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
 				containerWeight = 0.000;
 				notifyWeightChange(0);
+				flushMsCMD();
 			}
 			break;
 		case CANCEL:
+			isTara = false;
+			weightController.setSoftButtonTexts(empty);
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			//Suspect its to delete either the text in the console or on the display. 
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-			weightController.showMessageSecondaryDisplay(null);
+				weightController.showMessageSecondaryDisplay(null);
+				flushMsCMD();
+				resetButtonTexts(tara, zero, empty);
 			}
 			break;
 		case EXIT:
@@ -223,11 +262,22 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			break;
 		case SEND:
+			if(isTara) {
+				weightController.setSoftButtonTexts(tara);
+			} else {
+			weightController.setSoftButtonTexts(empty);
+			}
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				socketHandler.sendMessage(new SocketOutMessage("" + this.currentWeight));
+				//Prepares msCMD char array and sends a new String to CMD
+				sendMessageCMD(prepMessageCMD());
+				//Flush msCMD char array
+				flushMsCMD();
+				//Resets all soft button descriptions
+				resetButtonTexts(tara, zero, empty);
+				
 			}
 			break;
 		}
@@ -245,35 +295,72 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		String weight = this.currentWeight + "kg";
 		return weight;
 	}
-	/*
-	private String userName;
-	private int userId;
+	
+	public String prepMessageCMD() {
+		
+		msCMD[counter+1] = '\r';
+		msCMD[counter+2] = '\n';
+			
+		String message = new String(msCMD);
+		message.split("\n", 0);
+		
+		return message;
+//		socketHandler.sendMessage(new SocketOutMessage(message));
+	}
+	
+	public void sendMessageCMD (String string) {
+		socketHandler.sendMessage(new SocketOutMessage(prepMessageCMD()));		
+	}
+	 
+	public void flushMsCMD() {
+		isWriting = false;
+		weightController.showMessageSecondaryDisplay(null);
+		counter = 0;
+			
+		for(int i = 0; i < msCMD.length; i++) {
+			msCMD[i] = '\0';
+		}
+	}
+	
+	public void resetButtonTexts(String[] tara, String[] zero, String[] empty) {
+		tara[0] = "";
+		zero[0] = "";
+		empty[0] = "";
+	}
 
-	public void userLogin() {
-	    this.userName = "Ryan";
+	public void userLoginLocal() {
+	    this.userName = "Anders And";
 	    this.userId = 12;
-	    Scanner scan = new Scanner(System.in);
+
+            weightController.showMessageTernaryDisplay("Please enter you user id.");
+            String input = prepMessageCMD();
+            if (input == "12")
+            	weightController.showMessageTernaryDisplay("Your user ID is " + this.userId + " confirm by send y");
+            	input = prepMessageCMD();
+            if (input == "y")
+            	weightController.showMessageTernaryDisplay("Your name is " + this.userName + " confirm by pressing y");
+            	input = prepMessageCMD();    
+    }
+	
+	public void userLoginSocket() {
+	    this.userName = "Anders And";
+	    this.userId = 12;
 
 	    while(true) {
-            socketHandler.sendMessage(new SocketOutMessage("Your name is " + this.userName + " confirm by pressing ENTER"));
-            scan.nextLine();
-            socketHandler.sendMessage(new SocketOutMessage("Your user ID is " + this.userId + " confirm by pressing ENTER"));
-            scan.nextLine();
+	    	if (socketHandler != null){
+	    		socketHandler.sendMessage(new SocketOutMessage("Your name is " + this.userName + " confirm by pressing ENTER"));
+	    		//UserInput
+	    		socketHandler.sendMessage(new SocketOutMessage("Your user ID is " + this.userId + " confirm by pressing ENTER"));
+	    		//UserInput
             break;
+	    	}
         }
 
     }
-    */
-	
-	/*
-	private String batchnummer;
 
-	public void chooseBatch () {
-	    Scanner batchScan = new Scanner(System.in);
-
+	public void changeBatch () {
 	    while (true) {
 	        socketHandler.sendMessage(new SocketOutMessage("Enter batch number: 1234"));
-            batchnummer = batchScan.nextLine();
 	        if (batchnummer.equals("1234")) {
 	            break;
             }
@@ -281,27 +368,5 @@ public class MainController implements IMainController, ISocketObserver, IWeight
                 socketHandler.sendMessage(new SocketOutMessage("Invalid entry, try again"));
         }
     }
-	*/
 	
-	/*
-	public String writeToCMD(KeyPress keyPress) {
-		
-		System.out.println("Du er en lort");
-		
-		char[] ms = new char[30];
-		
-		for(int i = 0; i < ms.length; i++) {
-			ms[i] = keyPress.getCharacter();
-			System.out.println(keyPress.getCharacter());
-			weightController.showMessageSecondaryDisplay(ms.toString());	
-		
-		}
-		
-		return ms.toString();
-	}
-  
-  	if(keyPress.getType().equals("SEND")) {
-			socketHandler.sendMessage(new SocketOutMessage(ms));
-		}
-	*/
 }
