@@ -26,17 +26,17 @@ public class SocketController implements ISocketController
 	private DataOutputStream outStream; 
 	
 
-	public void viewAllClients()
+	public void viewClient()
 	{
 		
 		try 
 		{
 			for(Entry<String, String> entry : connectedClients.entrySet()) 
 			{
-			    String test = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue());
+			    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue());
 			    OutputStreamWriter osw = new OutputStreamWriter(outStream);
 				BufferedWriter bw = new BufferedWriter(osw);
-				bw.write(test);
+				bw.write(ClientView);
 				bw.flush();
 			}
 			
@@ -47,20 +47,7 @@ public class SocketController implements ISocketController
 		
 	}
 	
-	public void viewClient(SocketThread Client)
-	{
-		try 
-		{
-			OutputStreamWriter osw = new OutputStreamWriter(outStream);
-			BufferedWriter bw = new BufferedWriter(osw);
-			bw.write(connectedClients.get(Client).toString());
-			bw.flush();
-		} catch (IOException e1) 
-		{
-			e1.printStackTrace();
-		} 
-	}
-	
+
 	@Override
 	public void registerObserver(ISocketObserver observer) 
 	{
@@ -133,7 +120,7 @@ public class SocketController implements ISocketController
 			String clientCount = Integer.toString(Count);
 			Socket activeSocket = listeningSocket.accept();
 			
-			String Addr = activeSocket.getLocalAddress().toString();
+			String Addr = activeSocket.getInetAddress().toString();
 			connectedClients.put(Addr, clientCount);
 			outStream = new DataOutputStream(activeSocket.getOutputStream());
 			
@@ -199,7 +186,7 @@ class SocketThread extends Thread
 		  try 
 		  {
 	    	inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-	   	    SC.viewAllClients();
+	   	    SC.viewClient();
 	   	   
 	   	    while (true)
 	    	{
