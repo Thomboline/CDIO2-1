@@ -95,7 +95,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			break;
 		case DW:
 			resetWeightChange();
-			
 			weightController.showMessageSecondaryDisplay(null);
 			weightController.showMessageTernaryDisplay(null);
 			weightController.showMessagePrimaryDisplay(df.format(this.currentWeight) + "kg");
@@ -109,9 +108,10 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			weightController.showMessageSecondaryDisplay(upToNCharacters);
 			socketHandler.sendMessage(new SocketOutMessage("P111 A \r\n"));
 			break;
+		case DE: 
 		default:
-			socketHandler.sendMessage(new SocketOutMessage("Wrong input.\n"
-					+ "Commands: S\r\n"
+			socketHandler.sendMessage(new SocketOutMessage("ES \r\n"
+					+ "Wrong input, please use following commands:\n S\r\n"
 					+ "T\r\n"
 					+ "D\r\n"
 					+ "DW\r\n"
@@ -191,34 +191,37 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			break;
 		case TARA:
-			isTara = true;
-			if(isWriting) {
-				tara[0] = "Backspace";
-			}
-			weightController.setSoftButtonTexts(tara);
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+				
+				isTara = true;
+				if(isWriting) {
+					tara[0] = "Backspace";
+				}
+				weightController.setSoftButtonTexts(tara);
+				
 				this.containerWeight += this.currentWeight;
 				notifyWeightChange(0);
 			}
 			
 			break;
-		case TEXT:
-			if(isTara) {
-				tara[0] = "Backspace";
-				weightController.setSoftButtonTexts(tara);
-			}
-			else {
-				weightController.setSoftButtonTexts(text);
-			}
-			
+		case TEXT:			
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+				
+				if(isTara) {
+					tara[0] = "Backspace";
+					weightController.setSoftButtonTexts(tara);
+				}
+				else {
+					weightController.setSoftButtonTexts(text);
+				}
+				
 				isWriting = true;
 				msCMD[counter] = keyPress.getCharacter();			
 				String temp = new String(msCMD);
@@ -227,25 +230,29 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}			
 			break;
 		case ZERO:
-			isTara = false;
-			weightController.setSoftButtonTexts(zero);
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+
+				isTara = false;
+				weightController.setSoftButtonTexts(zero);
+				
 				containerWeight = 0.000;
 				notifyWeightChange(0);
 				flushMsCMD();
 			}
 			break;
 		case CANCEL:
-			isTara = false;
-			weightController.setSoftButtonTexts(empty);
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			//Suspect its to delete either the text in the console or on the display. 
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+
+				isTara = false;
+				weightController.setSoftButtonTexts(empty);
+				
 				weightController.showMessageSecondaryDisplay(null);
 				flushMsCMD();
 				resetButtonTexts(tara, zero, empty);
@@ -262,15 +269,17 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			break;
 		case SEND:
-			if(isTara) {
-				weightController.setSoftButtonTexts(tara);
-			} else {
-			weightController.setSoftButtonTexts(empty);
-			}
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
 				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
+				
+				if(isTara) {
+					weightController.setSoftButtonTexts(tara);
+				} else {
+				weightController.setSoftButtonTexts(empty);
+				}
+				
 				//Prepares msCMD char array and sends a new String to CMD
 				sendMessageCMD(prepMessageCMD());
 				//Flush msCMD char array
@@ -305,7 +314,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		message.split("\n", 0);
 		
 		return message;
-//		socketHandler.sendMessage(new SocketOutMessage(message));
 	}
 	
 	public void sendMessageCMD (String string) {
