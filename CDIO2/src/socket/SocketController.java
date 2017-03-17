@@ -22,7 +22,9 @@ public class SocketController implements ISocketController
 {
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
 	Map<String, String> connectedClients = new HashMap<String, String>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
-	List<DataOutputStream> dout = new ArrayList<DataOutputStream>(); 
+	List<DataOutputStream> dout = new ArrayList<DataOutputStream>();
+
+	private int Port = 8000;
 	
 	public void viewClient()
 	{
@@ -30,7 +32,7 @@ public class SocketController implements ISocketController
 		{
 			for(Entry<String, String> entry : connectedClients.entrySet()) 
 			{
-			    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue());
+			    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue() + "\n");
 			    OutputStreamWriter osw = new OutputStreamWriter(dout.get(0));
 				BufferedWriter bw = new BufferedWriter(osw);
 				bw.write(ClientView);
@@ -42,6 +44,11 @@ public class SocketController implements ISocketController
 			e1.printStackTrace();
 		} 
 		
+	}
+	
+	public void setPortNumber(int NewPort) 
+	{
+		this.Port = NewPort;
 	}
 	
 

@@ -1,7 +1,8 @@
 package socket;
 
-public interface ISocketController extends Runnable{
-	public final static int Port = 8000;
+public interface ISocketController extends Runnable
+{
+	
 	
 	void registerObserver(ISocketObserver observer);
 	void unRegisterObserver(ISocketObserver observer);
