@@ -21,8 +21,8 @@ import socket.SocketInMessage.SocketMessageType;
 public class SocketController implements ISocketController 
 {
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
-	Map<String, SocketThread> connectedClients = new HashMap<String, SocketThread>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
-	
+	Map<String, String> connectedClients = new HashMap<String, String>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
+	int Count = 0;
 	private DataOutputStream outStream; 
 	
 
@@ -31,24 +31,13 @@ public class SocketController implements ISocketController
 		
 		try 
 		{
-			
-			Map.Entry<String,String> entry=map.entrySet().iterator().next();
-			//Entry<String, SocketThread> entry = connectedClients.entrySet();
-			
-			/*int test2 = entry.getValue().getName().charAt(7);
-			OutputStreamWriter osw = new OutputStreamWriter(outStream);
-			BufferedWriter bw = new BufferedWriter(osw);
-			bw.write(test2);
-			bw.flush();*/
-			/*
-			for(Entry<String, SocketThread> entry : connectedClients.entrySet()) 
+			for(Entry<String, String> entry : connectedClients.entrySet()) 
 			{
-			    String test = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue().getName().charAt(7));
+			    String test = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue());
 			    OutputStreamWriter osw = new OutputStreamWriter(outStream);
 				BufferedWriter bw = new BufferedWriter(osw);
 				bw.write(test);
 				bw.flush();
-				break;*/
 			}
 			
 		} catch (IOException e1) 
@@ -140,10 +129,16 @@ public class SocketController implements ISocketController
 	{
 		try 
 		{
+			++Count;
+			String clientCount = Integer.toString(Count);
 			Socket activeSocket = listeningSocket.accept();
+			
+			String Addr = activeSocket.getLocalAddress().toString();
+			connectedClients.put(Addr, clientCount);
 			outStream = new DataOutputStream(activeSocket.getOutputStream());
 			
 			new SocketThread(activeSocket, this).start();
+		
 		} 
 		catch (IOException e) 
 		{
@@ -201,16 +196,10 @@ class SocketThread extends Thread
 	  {
 		  String inLine;
 		  
-		  SC.connectedClients.put(activeSocket.getLocalAddress().toString(), this);
-		  SC.viewAllClients();
-		  
-		  
-		  /*SC.viewClient(this);*/
-		  
 		  try 
 		  {
 	    	inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-	   	    
+	   	    SC.viewAllClients();
 	   	   
 	   	    while (true)
 	    	{
