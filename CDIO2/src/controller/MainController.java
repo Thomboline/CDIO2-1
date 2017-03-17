@@ -25,14 +25,13 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	private double containerWeight;
 	private char[] msCMD = new char[32];
 	private int counter = 0;
-	private boolean isWriting, isTara;
+	private boolean isWriting, isTara, isRM208;
 	private String batchnummer;
 	private String userName;
 	private int userId;
 	
 	DecimalFormat df = new DecimalFormat ("0.000");
 	
-
 	public MainController(ISocketController socketHandler, IWeightInterfaceController weightInterfaceController) {
 		this.init(socketHandler, weightInterfaceController);
 	}
@@ -62,13 +61,19 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	//Listening for socket input
 	@Override
 	public void notify(SocketInMessage message) {
+		if(isRM208) {
+			
+		}
+		else {
 		switch (message.getType()) {
 		case B:
 			double newWeight = Double.parseDouble(message.getMessage());
+			socketHandler.sendMessage(new SocketOutMessage("DB"));
 			notifyWeightChange(newWeight);
 			break;
 		case D:
 			weightController.showMessagePrimaryDisplay(message.getMessage());
+			socketHandler.sendMessage(new SocketOutMessage("D A"));
 			break;
 		case Q:
 			weightController.unRegisterObserver(this);
@@ -78,11 +83,18 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case RM204:
 			//Not specified
 			break;
-		case RM208: //Need work
+		case RM208:
+			isRM208 = true;
 			weightController.showMessageTernaryDisplay(message.getMessage());
-			socketHandler.sendMessage(new SocketOutMessage("RM20 B \r\n"));
-			//TODO Implement
-			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " \r\n"));
+			socketHandler.sendMessage(new SocketOutMessage("Awaiting response from GUI... \r\n"));
+			try {
+				synchronized(socketHandler) {
+					socketHandler.wait();
+				}
+			}
+			catch  (InterruptedException ex) {
+				ex.printStackTrace();
+			}
 			break;
 		case S:
 			socketHandler.sendMessage(new SocketOutMessage("S S " + this.currentWeight + "\r\n"));
@@ -109,7 +121,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			socketHandler.sendMessage(new SocketOutMessage("P111 A \r\n"));
 			break;
 		case DE: 
-			break;
 		default:
 			socketHandler.sendMessage(new SocketOutMessage("ES \r\n"
 					+ "Wrong input, please use following commands:\n S\r\n"
@@ -123,7 +134,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 					+ "Q\r\n"));
 				
 		}
-
+		}
 	}
 
 	private void handleKMessage(SocketInMessage message) {
@@ -159,11 +170,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		
 		switch (keyPress.getType()) {
 		case SOFTBUTTON:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
-				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
-			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4) ){
-				 
 				if (keyPress.getKeyNumber() == 0) {
 					if(isWriting) {
 						if(msCMD[0] != '\0') {
@@ -189,7 +195,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				if (keyPress.getKeyNumber() == 5) {
 					//Log in & out funktion
 				}					
-			}
 			break;
 		case TARA:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
@@ -209,12 +214,11 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			
 			break;
-		case TEXT:			
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
-				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
-			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-				
+		case TEXT:							
+				if(isRM208) {
+					
+				}
+								
 				if(isTara) {
 					tara[0] = "Backspace";
 					weightController.setSoftButtonTexts(tara);
@@ -228,7 +232,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				String temp = new String(msCMD);
 				weightController.showMessageSecondaryDisplay(temp);
 				counter ++;
-			}			
+				
 			break;
 		case ZERO:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
@@ -245,29 +249,17 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			break;
 		case CANCEL:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
-				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
-			}
-			//Suspect its to delete either the text in the console or on the display. 
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
-
 				isTara = false;
 				weightController.setSoftButtonTexts(empty);
 				
 				weightController.showMessageSecondaryDisplay(null);
 				flushMsCMD();
 				resetButtonTexts(tara, zero, empty);
-			}
 			break;
 		case EXIT:
-			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3)) {
-				socketHandler.sendMessage(new SocketOutMessage("K A 3"));
-			}
-			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
 				weightController.unRegisterObserver(this);
 				socketHandler.unRegisterObserver(this);
 				System.exit(0); 
-			}
 			break;
 		case SEND:
 			if (keyState.equals(KeyState.K4) || keyState.equals(KeyState.K3) ){
@@ -281,12 +273,26 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				weightController.setSoftButtonTexts(empty);
 				}
 				
+				if(isRM208) {
+					try {
+						synchronized(socketHandler) {
+							socketHandler.notify();
+						}
+					}
+						catch (Exception e) {
+							e.printStackTrace();
+					}
+					isRM208 = false;
+				}
+				
 				//Prepares msCMD char array and sends a new String to CMD
 				sendMessageCMD(prepMessageCMD());
 				//Flush msCMD char array
 				flushMsCMD();
 				//Resets all soft button descriptions
 				resetButtonTexts(tara, zero, empty);
+				
+				
 				
 			}
 			break;

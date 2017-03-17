@@ -43,7 +43,6 @@ public class SocketController implements ISocketController
 		} 
 		
 	}
-	
 
 	@Override
 	public void registerObserver(ISocketObserver observer) 
@@ -167,14 +166,14 @@ public class SocketController implements ISocketController
 		}
 		return b;
 	}
+	
 }
 class SocketThread extends Thread 
 {
-
-	  Socket activeSocket;
-	  SocketController SC;
+	Socket activeSocket;
+	SocketController SC;
 	  
-	  private BufferedReader inStream;
+	private BufferedReader inStream;
 	 
 	  
 	  public SocketThread(Socket activeSocket, SocketController SC ) 
@@ -213,6 +212,12 @@ class SocketThread extends Thread
 						catch (ArrayIndexOutOfBoundsException e) 
 						{
 							SC.notifyObservers(new SocketInMessage(SocketMessageType.RM208, "INDTAST NR"));
+//							try {
+//								SC.wait(20000);
+//							}
+//							catch(InterruptedException ex) {
+//								ex.printStackTrace();
+//							}
 						}
 					}
 					else if(inLine.split(" ")[1].equals("4"))
@@ -250,9 +255,15 @@ class SocketThread extends Thread
 					break;
 				case "B": // Set the load
 					//TODO implement
+					try {
 					if(SC.isItANumber(inLine.split(" ")[1])){
 						SC.notifyObservers(new SocketInMessage(SocketMessageType.B, inLine.split(" ")[1])); 
 					}
+					}
+					catch(ArrayIndexOutOfBoundsException ex) {
+						System.out.println("You can't do that.");
+					}
+					
 					break;
 				case "Q": // Quit
 					SC.notifyObservers(new SocketInMessage(SocketMessageType.Q, "Q"));
@@ -277,4 +288,5 @@ class SocketThread extends Thread
 	    }
 
 	 }
+
 }
