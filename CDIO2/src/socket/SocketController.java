@@ -28,13 +28,37 @@ public class SocketController implements ISocketController
 
 	public void viewAllClients()
 	{
-		for(Entry<String, SocketThread> entry : connectedClients.entrySet()) 
+		
+		try 
 		{
-		    System.out.println("Key: " + entry.getKey() + " Values: " + entry.getValue());
-		}
+			
+			Map.Entry<String,String> entry=map.entrySet().iterator().next();
+			//Entry<String, SocketThread> entry = connectedClients.entrySet();
+			
+			/*int test2 = entry.getValue().getName().charAt(7);
+			OutputStreamWriter osw = new OutputStreamWriter(outStream);
+			BufferedWriter bw = new BufferedWriter(osw);
+			bw.write(test2);
+			bw.flush();*/
+			/*
+			for(Entry<String, SocketThread> entry : connectedClients.entrySet()) 
+			{
+			    String test = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue().getName().charAt(7));
+			    OutputStreamWriter osw = new OutputStreamWriter(outStream);
+				BufferedWriter bw = new BufferedWriter(osw);
+				bw.write(test);
+				bw.flush();
+				break;*/
+			}
+			
+		} catch (IOException e1) 
+		{
+			e1.printStackTrace();
+		} 
+		
 	}
 	
-	/*public void viewClient(SocketThread Client)
+	public void viewClient(SocketThread Client)
 	{
 		try 
 		{
@@ -46,7 +70,7 @@ public class SocketController implements ISocketController
 		{
 			e1.printStackTrace();
 		} 
-	}*/
+	}
 	
 	@Override
 	public void registerObserver(ISocketObserver observer) 
@@ -177,7 +201,10 @@ class SocketThread extends Thread
 	  {
 		  String inLine;
 		  
-		  SC.connectedClients.put(activeSocket.getInetAddress().toString(), this);
+		  SC.connectedClients.put(activeSocket.getLocalAddress().toString(), this);
+		  SC.viewAllClients();
+		  
+		  
 		  /*SC.viewClient(this);*/
 		  
 		  try 
@@ -244,7 +271,6 @@ class SocketThread extends Thread
 					if(SC.isItANumber(inLine.split(" ")[1])){
 						SC.notifyObservers(new SocketInMessage(SocketMessageType.B, inLine.split(" ")[1])); 
 					}
-
 					break;
 				case "Q": // Quit
 					SC.notifyObservers(new SocketInMessage(SocketMessageType.Q, "Q"));
