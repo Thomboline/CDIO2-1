@@ -86,7 +86,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case RM208:
 			isRM208 = true;
 			weightController.showMessageTernaryDisplay(message.getMessage());
-			socketHandler.sendMessage(new SocketOutMessage("Awaiting response from GUI... \r\n"));
+			socketHandler.sendMessage(new SocketOutMessage("RM B\r\n"));
 			try {
 				synchronized(socketHandler) {
 					socketHandler.wait();
@@ -285,6 +285,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 					}
 					isRM208 = false;
 				}
+				
+				socketHandler.sendMessage(new SocketOutMessage("RM A "));
 				
 				//Prepares msCMD char array and sends a new String to CMD
 				sendMessageCMD(prepMessageCMD());
