@@ -19,14 +19,14 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import weight.IWeightInterfaceController.InputType;
-
+//
 public class FxApp extends Application {
 	private Text txtload, txtbottom;
 	private Text[] txtsft = new Text[6];
 	private Text[] txtinfo = new Text[4];
 	private TextField userInput;
 	private Slider slider;
-	private Button btnexit, btnzero, btntara, btnsend, btnshift; 
+	private Button btnexit, btnzero, btntara, btnsend, btnshift, btncancel; 
 	private Button[] btnsft = new Button[6];
 	private Button[] btnnum = new Button[10];
 	public static final String[] str_lower = {".", "abc", "def", "ghi", "jkl", "mno", "pqr", "stu", "vxy", "z"};
@@ -133,20 +133,38 @@ public class FxApp extends Application {
 				final int btn = i;
 				btnnum[i] = (Button) loader.getNamespace().get("btn_"+(i));
 				btnnum[i].setOnAction(new EventHandler<ActionEvent>() { 
-					@Override public void handle(ActionEvent event) { onNumBtnPressed(inputHandler, btn); }
+					@Override public void handle(ActionEvent event) { onNumButtonPressed(inputHandler, btn); }
 				});
 			}
 
 			btnshift = (Button) loader.getNamespace().get("btn_shift");
 			btnshift.setOnAction(new EventHandler<ActionEvent>() {
-				@Override public void handle(ActionEvent event) { onShiftBtnPressed(); }
+			
+			@Override 
+			public void handle(ActionEvent event) { onShiftButtonPressed(); }
 			});
 
 			btnzero = (Button) loader.getNamespace().get("btn_zero");
 			btnzero.setOnAction(new EventHandler<ActionEvent>() { 
-				@Override public void handle(ActionEvent event) { onZeroButtonPressed(); }
+			
+			@Override
+			public void handle(ActionEvent event) { onZeroButtonPressed(); }
 			});
+			
+			btncancel = (Button) loader.getNamespace().get("btn_cancel");
+ 			btncancel.setOnAction(new EventHandler<ActionEvent>() { 
 
+ 			@Override
+ 			public void handle(ActionEvent event) { onCancelButtonPressed(); }
+			 	});
+			 			
+			btnexit = (Button) loader.getNamespace().get("btn_exit");
+			btnexit.setOnAction(new EventHandler<ActionEvent>() { 
+			
+			@Override
+			public void handle(ActionEvent event) { onExitButtonPressed(); }
+			});
+			
 			primaryStage.setScene(scene);
 			primaryStage.show();
 		} catch(Exception e) {
@@ -167,7 +185,7 @@ public class FxApp extends Application {
 	private void onZeroButtonPressed(){ l.onZeroButtonPressed(); }
 	private void onTaraButtonPressed(){ l.onTaraButtonPressed(); }
 	private void onSendButtonPressed(){ l.onSendButtonPressed(); }
-	private void onNumBtnPressed(final FxAppInputBtnHandler inputHandler, final int btn) {
+	private void onNumButtonPressed(final FxAppInputBtnHandler inputHandler, final int btn) {
 		char c = inputHandler.onButtonPressed(btn, inputType, DELAY);
 		if(timer == null) timer = new Timer();
 		else {
@@ -178,19 +196,23 @@ public class FxApp extends Application {
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				l.onNumBtnPressed(c);
+				l.onNumButtonPressed(c);
 			}
 		}, DELAY);
 		
 		userInput.requestFocus();
 	}
-	private void onShiftBtnPressed() {
+	private void onShiftButtonPressed() {
 		toggle_input_type();
 		userInput.requestFocus();
 		userInput.positionCaret(caretPosition);
 	}
+	
+	private void onCancelButtonPressed(){ l.onCancelButtonPressed();
+	}
+	
 	private void onSoftKeyPressed(int i){
-		l.onSoftBtnPressed(i);
+		l.onSoftButtonPressed(i);
 	}
 
 	//input
@@ -199,7 +221,10 @@ public class FxApp extends Application {
 			@Override
 			public void run() {
 				
-				txtload.setText(load.length() > 7 ? load.substring(0, 7) : load);
+				txtload.setText(load.length() > 9 ? load.substring(0, 9) : load);
+				txtload.setVisible(true);
+				txtinfo[2].setVisible(false);
+				txtinfo[3].setVisible(false);
 			}
 		});
 	}
@@ -208,12 +233,31 @@ public class FxApp extends Application {
 			@Override
 			public void run() {
 				txtbottom.setText(msg);
+				txtbottom.setVisible(true);
+				txtinfo[2].setVisible(false);
 				txtinfo[3].setVisible(false);
 				userInput.setVisible(false);
-				txtbottom.setVisible(true);
+				
 			}
 		});
 	}
+	
+	/*
+	info[2] og load er sammenfaldende
+	info[3], bottom og userinput er sammenfaldende
+	*/
+	public void printText3(final String msg) {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				txtinfo[2].setText(msg);
+				txtinfo[2].setVisible(true);
+				txtload.setVisible(false);
+			}
+		});
+	}
+		
+	
 	public void softkeysHide() {
 		for(Text t : txtsft) { t.setText(""); }
 	}
@@ -274,16 +318,47 @@ public class FxApp extends Application {
 			}
 		});
 	}
-
-
-
-
-
-
-
-
-
-
-
-
+	
+	class FxAppInputBtnHandler {
+ 		private int lastBtnPressed = -1;
+ 		private long lastTimePressed = -1;
+ 		private char btnValue;
+		 		
+		public char onButtonPressed(int btn, InputType input_type, int delay){
+			if(InputType.LOWER == input_type || InputType.UPPER == input_type){
+				if(btn == lastBtnPressed && System.currentTimeMillis() < lastTimePressed+delay){
+					btnValue = nextValue(btn, btnValue, input_type);
+				} else {
+					btnValue = InputType.LOWER == input_type ? FxApp.str_lower[btn].charAt(0) : FxApp.str_upper[btn].charAt(0);
+				}
+				lastTimePressed = System.currentTimeMillis();
+				lastBtnPressed = btn;
+			} else {
+	 				btnValue = Character.forDigit(btn, 10);
+			}
+			
+			return btnValue;
+			}
+			
+		private char nextValue(int btn, char currentValue, InputType input_type){
+		
+			String str;
+			switch(input_type){
+			case LOWER: str = FxApp.str_lower[btn]; break;
+			case UPPER: str = FxApp.str_upper[btn]; break;
+			case NUMBERS:
+			default: return currentValue;
+			}
+			int currentIndex = str.indexOf(currentValue);
+			int index = (currentIndex +1) % str.length();
+			return str.charAt(index);
+			}
+				 		
+		public void reset(){
+		lastBtnPressed = -1;
+		lastTimePressed = -1;
+		btnValue = '_';
+		}
+				 
+}		
 }

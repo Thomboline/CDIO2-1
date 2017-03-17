@@ -5,6 +5,7 @@ package weight;
  * @author Christian
  *
  */
+//
 public class KeyPress {
 	private int keyNumber;
 	private char character;
@@ -24,6 +25,10 @@ public class KeyPress {
 	
 	public static KeyPress Send(){
 		return new KeyPress(0,'\\', KeyPressType.SEND);
+	}
+	
+	public static KeyPress Cancel(){
+		return new KeyPress(0, '\\', KeyPressType.CANCEL);
 	}
 	
 	public static KeyPress SoftButton(int number){
@@ -51,6 +56,6 @@ public class KeyPress {
 	}
 	
 	public enum KeyPressType{
-		SOFTBUTTON, TEXT, EXIT, ZERO, TARA, SEND, C	
+		SOFTBUTTON, TEXT, EXIT, ZERO, TARA, SEND, CANCEL	
 	}
 }
