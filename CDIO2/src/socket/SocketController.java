@@ -6,6 +6,7 @@ import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -23,27 +25,32 @@ public class SocketController implements ISocketController
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
 	Map<String, String> connectedClients = new HashMap<String, String>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
 	List<DataOutputStream> dout = new ArrayList<DataOutputStream>();
-
+	
+	int runOnce = 0;
 	private int Port = 8000;
 	
-	public void viewClient()
+	public void OutputCMD(String message)
 	{
 		try 
 		{
-			for(Entry<String, String> entry : connectedClients.entrySet()) 
-			{
-			    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue() + "\n");
-			    OutputStreamWriter osw = new OutputStreamWriter(dout.get(0));
-				BufferedWriter bw = new BufferedWriter(osw);
-				bw.write(ClientView);
-				bw.flush();
-			}
+			OutputStreamWriter osw = new OutputStreamWriter(dout.get(0));
+			BufferedWriter bw = new BufferedWriter(osw);
+			bw.write(message);
+			bw.flush();
 			
 		} catch (IOException e1) 
 		{
 			e1.printStackTrace();
 		} 
-		
+	}
+	
+	public void viewClient()
+	{
+		for(Entry<String, String> entry : connectedClients.entrySet()) 
+		{
+		    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue() + "\n");
+		    OutputCMD(ClientView);
+		} 
 	}
 	
 	public void setPortNumber(int NewPort) 
@@ -89,12 +96,13 @@ public class SocketController implements ISocketController
 			try 
 			{
 				String MessageClosed = "Connection is closed";
-				for(int i = 0; i < dout.size(); i++) {
+				for(int i = 0; i < dout.size(); i++) 
+				{
 					OutputStreamWriter osw = new OutputStreamWriter(dout.get(i));
 					BufferedWriter bw = new BufferedWriter(osw);
 					bw.write(MessageClosed);
 					bw.flush();
-					}
+				}
 				
 			} catch (IOException e1) 
 			{
@@ -124,14 +132,47 @@ public class SocketController implements ISocketController
 
 	private void waitForConnections(ServerSocket listeningSocket) 
 	{
+
 		try 
 		{
-			
+			String inLine;
+
 			Socket activeSocket = listeningSocket.accept();
-			String Addr = activeSocket.getInetAddress().toString();
 			DataOutputStream temp = new DataOutputStream(activeSocket.getOutputStream());
-			dout.add(temp);	
+			dout.add(temp);
+			
+			if(runOnce < 1)
+			{
+				String ChangePortMessage = "Do you wish to change the port number on the device, y/n?\n";
+				
+				OutputCMD(ChangePortMessage);
+				
+				BufferedReader inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+				inLine = inStream.readLine();
+				
+				switch(inLine.split(" ")[0]) 
+				{
+				case "y":
+					String ChangePortMessage2 = "Please type in the new port number\n";
+					OutputCMD(ChangePortMessage2);
+					int NewPort = Integer.parseInt(inStream.readLine());
+					setPortNumber(NewPort);
+					
+					break;
+				case "n":
+				    break;
+				    
+				default :
+					String ChangePortMessage3 = "Input error";
+					OutputCMD(ChangePortMessage3);
+				break;
+				}
+			}
+			runOnce++;
+			
+			String Addr = activeSocket.getInetAddress().toString();
 			new SocketThread(activeSocket, this).start();
+			
 			int activeCount = SocketThread.activeCount()-8;
 			String clientCount = Integer.toString(activeCount);
 			connectedClients.put(Addr, clientCount);
@@ -177,13 +218,11 @@ public class SocketController implements ISocketController
 }
 class SocketThread extends Thread 
 {
-
 	  Socket activeSocket;
 	  SocketController SC;
 	  
 	  private BufferedReader inStream;
 	 
-	  
 	  public SocketThread(Socket activeSocket, SocketController SC ) 
 	  {
 	    this.activeSocket = activeSocket;
@@ -197,8 +236,6 @@ class SocketThread extends Thread
 		  try 
 		  {
 	    	inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-	    	
-	    	
 	   	    SC.viewClient();
 	   	   
 	   	    while (true)
