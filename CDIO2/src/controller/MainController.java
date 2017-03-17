@@ -52,6 +52,8 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			new Thread(socketHandler).start();
 			new Thread(weightController).start();
 			weightController.registerObserver(this);
+			
+			
 
 		} else {
 			System.err.println("No controllers injected!");
@@ -243,7 +245,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 
 				isTara = false;
 				weightController.setSoftButtonTexts(zero);
-				
 				containerWeight = 0.000;
 				notifyWeightChange(0);
 				flushMsCMD();
@@ -252,7 +253,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case CANCEL:
 				isTara = false;
 				weightController.setSoftButtonTexts(empty);
-				
 				weightController.showMessageSecondaryDisplay(null);
 				flushMsCMD();
 				resetButtonTexts(tara, zero, empty);
@@ -287,20 +287,18 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				}
 				
 				socketHandler.sendMessage(new SocketOutMessage("RM A "));
-				
-				//Prepares msCMD char array and sends a new String to CMD
+				//Prepares message
+				prepMessageCMD();
+				//Sends a new String to CMD
 				sendMessageCMD(prepMessageCMD());
 				//Flush msCMD char array
 				flushMsCMD();
 				//Resets all soft button descriptions
 				resetButtonTexts(tara, zero, empty);
 				
-				
-				
 			}
 			break;
 		}
-
 	}
 
 	@Override
@@ -360,21 +358,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
             	input = prepMessageCMD();    
     }
 	
-	public void userLoginSocket() {
-	    this.userName = "Anders And";
-	    this.userId = 12;
-
-	    while(true) {
-	    	if (socketHandler != null){
-	    		socketHandler.sendMessage(new SocketOutMessage("Your name is " + this.userName + " confirm by pressing ENTER"));
-	    		//UserInput
-	    		socketHandler.sendMessage(new SocketOutMessage("Your user ID is " + this.userId + " confirm by pressing ENTER"));
-	    		//UserInput
-            break;
-	    	}
-        }
-
-    }
 
 	public void changeBatch () {
 	    while (true) {

@@ -20,30 +20,42 @@ import socket.SocketInMessage.SocketMessageType;
 
 public class SocketController implements ISocketController 
 {
-	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
-	Map<String, String> connectedClients = new HashMap<String, String>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
-	List<DataOutputStream> dout = new ArrayList<DataOutputStream>(); 
+	private Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
+	private Map<String, String> connectedClients = new HashMap<String, String>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
+	private List<DataOutputStream> dout = new ArrayList<DataOutputStream>(); 
 	
-	public void viewClient()
+	private int runOnce = 0;
+	private int Port = 8000;
+	
+	
+	public void OutputCMD(String message)
 	{
 		try 
 		{
-			for(Entry<String, String> entry : connectedClients.entrySet()) 
-			{
-			    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue());
-			    OutputStreamWriter osw = new OutputStreamWriter(dout.get(0));
-				BufferedWriter bw = new BufferedWriter(osw);
-				bw.write(ClientView);
-				bw.flush();
-			}
+			OutputStreamWriter osw = new OutputStreamWriter(dout.get(0));
+			BufferedWriter bw = new BufferedWriter(osw);
+			bw.write(message);
+			bw.flush();
 			
 		} catch (IOException e1) 
 		{
 			e1.printStackTrace();
 		} 
-		
+	}
+  
+  public void viewClient()
+	{
+		for(Entry<String, String> entry : connectedClients.entrySet()) 
+		{
+		    String ClientView = ("Client Ip adress: " + entry.getKey() + " Numbers of clients: " + entry.getValue() + "\n");
+		    OutputCMD(ClientView);
+		} 
 	}
 
+  	public void setPortNumber(int newPort) {
+  		this.Port = newPort;
+  	}
+  	
 	@Override
 	public void registerObserver(ISocketObserver observer) 
 	{
@@ -75,7 +87,6 @@ public class SocketController implements ISocketController
 				e1.printStackTrace();
 			} 
 
-		//TODO send something over the socket! // Done
 		} else 
 		{
 			try 
@@ -114,24 +125,48 @@ public class SocketController implements ISocketController
 		} 
 	}
 
-	private void waitForConnections(ServerSocket listeningSocket) 
-	{
-		try 
-		{
-			
+	private void waitForConnections(ServerSocket listeningSocket) {
+		try {
 			Socket activeSocket = listeningSocket.accept();
-			String Addr = activeSocket.getInetAddress().toString();
 			DataOutputStream temp = new DataOutputStream(activeSocket.getOutputStream());
-			dout.add(temp);	
-			new SocketThread(activeSocket, this).start();
-			int activeCount = SocketThread.activeCount()-8;
-			String clientCount = Integer.toString(activeCount);
-			connectedClients.put(Addr, clientCount);
-		
-		} 
-		catch (IOException e) 
-		{
-			//TODO maybe notify mainController?
+			dout.add(temp);
+
+			if (runOnce < 1) {
+				String ChangePortMessage = "Do you wish to change the port number on the device, y/n?\n";
+				OutputCMD(ChangePortMessage);
+
+				BufferedReader inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
+				String inLine = inStream.readLine();
+
+				switch (inLine.split(" ")[0]) {
+				case "y":
+					String ChangePortMessage2 = "Please type in the new port number\n";
+					OutputCMD(ChangePortMessage2);
+					int NewPort = Integer.parseInt(inStream.readLine());
+					setPortNumber(NewPort);
+
+					break;
+				case "n":
+					break;
+
+				default:
+					String ChangePortMessage3 = "Input error";
+					OutputCMD(ChangePortMessage3);
+					break;
+				}
+
+				runOnce++;
+
+				String Addr = activeSocket.getInetAddress().toString();
+				new SocketThread(activeSocket, this).start();
+
+				int activeCount = SocketThread.activeCount() - 8;
+				String clientCount = Integer.toString(activeCount);
+				connectedClients.put(Addr, clientCount);
+
+			}
+		} catch (IOException e) {
+			// TODO maybe notify mainController?
 			e.printStackTrace();
 		}
 	}
@@ -169,7 +204,11 @@ public class SocketController implements ISocketController
 	
 }
 class SocketThread extends Thread 
-{
+{	
+	
+	private String userName;
+	private int userID;
+	
 	Socket activeSocket;
 	SocketController SC;
 	  
@@ -181,15 +220,49 @@ class SocketThread extends Thread
 	    this.activeSocket = activeSocket;
 	    this.SC = SC;
 	  }
+	  
+	public boolean login() {
+		
+		this.userName = "Anders And";
+		this.userID = 12;
+		
+		while (true) {
+			try {
+				SC.sendMessage(new SocketOutMessage("Please enter your userID\r\n"));
+
+				int userID = Integer.parseInt(inStream.readLine());
+				if (this.userID == userID) {
+					SC.sendMessage(new SocketOutMessage("Your user ID is " + this.userID + "\r\n" + "Confirm: y/n\r\n"));
+					String answer = inStream.readLine();
+					if (answer.equals("y")) {
+						SC.sendMessage(new SocketOutMessage("Your name is " + this.userName + "\r\n" + "Confirm: y/n\r\n"));
+						answer = inStream.readLine();
+						if (answer.equals("y")) {
+							return true;
+						} else {
+							SC.sendMessage(new SocketOutMessage("Name incorrect. Try again."));
+						}
+					} else {
+						SC.sendMessage(new SocketOutMessage("ID does not exist.\r\n"));
+					}
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+			return false;
+		}
+		
+	}
 
 	  public void run() 
-	  {
+	  {	
+		  
 		  String inLine;
 		  
 		  try 
 		  {
 	    	inStream = new BufferedReader(new InputStreamReader(activeSocket.getInputStream()));
-	    	
+	    	while(!login()) {}
 	    	
 	   	    SC.viewClient();
 	   	   
@@ -201,23 +274,15 @@ class SocketThread extends Thread
 	    		switch (inLine.split(" ")[0])
 	    		{
 				case "RM20": // Display a message in the secondary display and wait for response
-					//TODO implement logic for RM command
 					if(inLine.split(" ")[1].equals("8"))
 					{
 						try 
 						{
 							SC.notifyObservers(new SocketInMessage(SocketMessageType.RM208, inLine.split("8")[1]));
-							System.out.println("Du har skrevet RM208");
 						}
 						catch (ArrayIndexOutOfBoundsException e) 
 						{
 							SC.notifyObservers(new SocketInMessage(SocketMessageType.RM208, "INDTAST NR"));
-//							try {
-//								SC.wait(20000);
-//							}
-//							catch(InterruptedException ex) {
-//								ex.printStackTrace();
-//							}
 						}
 					}
 					else if(inLine.split(" ")[1].equals("4"))
@@ -228,8 +293,7 @@ class SocketThread extends Thread
 					else 
 						System.out.println("Du har tastet forkert.");
 					break;
-				case "D":// Display a message in the primary display
-					//TODO Refactor to make sure that faulty messages doesn't break the system					
+				case "D": // Write in secondary display
 						SC.notifyObservers(new SocketInMessage(SocketMessageType.D, inLine.split(" ")[1])); 
 					break;
 				case "DW": //Clear primary display
@@ -288,5 +352,5 @@ class SocketThread extends Thread
 	    }
 
 	 }
-
+	  
 }
