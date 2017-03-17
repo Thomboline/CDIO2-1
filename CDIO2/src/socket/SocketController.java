@@ -104,14 +104,12 @@ public class SocketController implements ISocketController
 				e1.printStackTrace();
 			} 
 			
-			//TODO maybe tell someone that connection is closed? //Done
 		}
 	}
 
 	@Override
 	public void run() 
 	{
-		//TODO some logic for listening to a socket //(Using try with resources for auto-close of socket)
 		try (ServerSocket listeningSocket = new ServerSocket(Port))
 		{ 
 			while (true)
@@ -120,7 +118,6 @@ public class SocketController implements ISocketController
 			}		
 		} catch (IOException e1) 
 		{
-			// TODO Maybe notify MainController?
 			e1.printStackTrace();
 		} 
 	}
@@ -166,7 +163,6 @@ public class SocketController implements ISocketController
 
 			}
 		} catch (IOException e) {
-			// TODO maybe notify mainController?
 			e.printStackTrace();
 		}
 	}
@@ -256,7 +252,6 @@ class SocketThread extends Thread
 
 	  public void run() 
 	  {	
-		  
 		  String inLine;
 		  
 		  try 
@@ -298,27 +293,22 @@ class SocketThread extends Thread
 					break;
 				case "DW": //Clear primary display
 					SC.notifyObservers(new SocketInMessage(SocketMessageType.DW, "DW"));
-					//TODO implement
 					break;
 				case "P111": //Show something in secondary display
 					SC.notifyObservers(new SocketInMessage(SocketMessageType.P111, inLine.split(" ")[1]));
-					//TODO implement
 					break;
 				case "T": // Tare the weight
 					SC.notifyObservers(new SocketInMessage(SocketMessageType.T, "T"));
-					//TODO implement
 					break;
 				case "S": // Request the current load
 					SC.notifyObservers(new SocketInMessage(SocketMessageType.S, "S"));
-					//TODO implement
 					break;
-				case "K":
+				case "K": // Choose keystate
 					if (inLine.split(" ").length>1){
 						SC.notifyObservers(new SocketInMessage(SocketMessageType.K, inLine.split(" ")[1]));
 					}
 					break;
 				case "B": // Set the load
-					//TODO implement
 					try {
 					if(SC.isItANumber(inLine.split(" ")[1])){
 						SC.notifyObservers(new SocketInMessage(SocketMessageType.B, inLine.split(" ")[1])); 
@@ -332,8 +322,6 @@ class SocketThread extends Thread
 				case "Q": // Quit
 					SC.notifyObservers(new SocketInMessage(SocketMessageType.Q, "Q"));
 					this.interrupt();
-					
-					//TODO implement
 					break;
 				default: //Something went wrong?
 					try {
