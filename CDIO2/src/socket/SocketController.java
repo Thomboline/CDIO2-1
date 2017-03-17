@@ -23,8 +23,8 @@ public class SocketController implements ISocketController
 	Set<ISocketObserver> observers = new HashSet<ISocketObserver>();
 	Map<String, SocketThread> connectedClients = new HashMap<String, SocketThread>(); //Answer to = TODO Maybe add some way to keep track of multiple connections?
 	
-	private DataOutputStream outStream;
-
+	private DataOutputStream outStream; 
+	
 
 	public void viewAllClients()
 	{
@@ -76,7 +76,7 @@ public class SocketController implements ISocketController
 				e1.printStackTrace();
 			} 
 
-		//TODO send something over the socket! 
+		//TODO send something over the socket! // Done
 		} else 
 		{
 			try 
@@ -91,7 +91,7 @@ public class SocketController implements ISocketController
 				e1.printStackTrace();
 			} 
 			
-			//TODO maybe tell someone that connection is closed?
+			//TODO maybe tell someone that connection is closed? //Done
 		}
 	}
 
@@ -117,6 +117,8 @@ public class SocketController implements ISocketController
 		try 
 		{
 			Socket activeSocket = listeningSocket.accept();
+			outStream = new DataOutputStream(activeSocket.getOutputStream());
+			
 			new SocketThread(activeSocket, this).start();
 		} 
 		catch (IOException e) 
@@ -245,6 +247,9 @@ class SocketThread extends Thread
 
 					break;
 				case "Q": // Quit
+					SC.notifyObservers(new SocketInMessage(SocketMessageType.Q, "Q"));
+					this.interrupt();
+					
 					//TODO implement
 					break;
 				default: //Something went wrong?
