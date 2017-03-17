@@ -60,7 +60,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case B:
 			double newWeight = Double.parseDouble(message.getMessage());
 			notifyWeightChange(newWeight);
-			weightController.showMessagePrimaryDisplay(message.getMessage() + "kg");
 			break;
 		case D:
 			weightController.showMessagePrimaryDisplay(message.getMessage());
@@ -75,21 +74,25 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			break;
 		case RM208: //Need work
 			weightController.showMessageTernaryDisplay(message.getMessage());
+			socketHandler.sendMessage(new SocketOutMessage("RM20 B \r\n"));
 			//TODO Implement
-			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " crlf"));
+			socketHandler.sendMessage(new SocketOutMessage("RM20 A " + /*input +*/ " \r\n"));
 			break;
 		case S:
-			socketHandler.sendMessage(new SocketOutMessage("S S " + this.currentWeight/1000));
+			socketHandler.sendMessage(new SocketOutMessage("S S " + this.currentWeight + "\r\n"));
 			break;
 		case T:
 			this.containerWeight += currentWeight;
 			notifyWeightChange(0);
 			weightController.showMessageSecondaryDisplay("Weight of tara: " + containerWeight + "kg");
-			socketHandler.sendMessage(new SocketOutMessage("T S " + this.containerWeight +"kg"));
+			socketHandler.sendMessage(new SocketOutMessage("T S " + this.containerWeight +"kg \r\n"));
 			break;
 		case DW:
-			weightController.showMessagePrimaryDisplay(resetWeightChange());
-			socketHandler.sendMessage(new SocketOutMessage("DW A"));
+			resetWeightChange();
+			weightController.showMessagePrimaryDisplay(df.format(this.currentWeight));
+			weightController.showMessageSecondaryDisplay(null);
+			weightController.showMessageTernaryDisplay(null);
+			socketHandler.sendMessage(new SocketOutMessage("DW A\r\n"));
 			break;
 		case K:
 			handleKMessage(message);
@@ -97,12 +100,20 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		case P111:
 			String upToNCharacters = message.getMessage().substring(0, Math.min(message.getMessage().length(), 30));
 			weightController.showMessageSecondaryDisplay(upToNCharacters);
-			socketHandler.sendMessage(new SocketOutMessage("P111 A crlf"));
+			socketHandler.sendMessage(new SocketOutMessage("P111 A \r\n"));
 			break;
 		default:
-			socketHandler.sendMessage(new SocketOutMessage("Wrong input.\nCommands: S\nT\nD\nDW\nP111\nRM20 8\nK\nB\nQ"));
-			
-			
+			socketHandler.sendMessage(new SocketOutMessage("Wrong input.\n"
+					+ "Commands: S\r\n"
+					+ "T\r\n"
+					+ "D\r\n"
+					+ "DW\r\n"
+					+ "P111\r\n"
+					+ "RM20 8\r\n"
+					+ "K\r\n"
+					+ "B\r\n"
+					+ "Q\r\n"));
+				
 		}
 
 	}
@@ -131,8 +142,6 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 	@Override
 	public void notifyKeyPress(KeyPress keyPress) {
 		//TODO implement logic for handling input from ui
-		//Fjern "Du har trykket på..." når programmet er klart
-		weightController.showMessageSecondaryDisplay("Du har trykket på en knap");
 		System.out.println(keyPress.getCharacter());
 		switch (keyPress.getType()) {
 		case SOFTBUTTON:
@@ -148,7 +157,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 				
 				}
 				if (keyPress.getKeyNumber() == 2) {
-				
+					weightController.showMessageTernaryDisplay(this.containerWeight + "kg");
 				}
 				if (keyPress.getKeyNumber() == 3) {
 				
@@ -167,8 +176,12 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
+				String [] texts = {
+					"", "", "Show stored wieght"	
+				};
+				weightController.setSoftButtonTexts(texts);
 				this.containerWeight += this.currentWeight;
-				weightController.showMessagePrimaryDisplay(df.format(resetWeightChange()));
+				notifyWeightChange(0);
 			}
 			
 			break;
@@ -187,7 +200,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			}
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
 				containerWeight = 0.000;
-				weightController.showMessagePrimaryDisplay(df.format(resetWeightChange()));
+				notifyWeightChange(0);
 			}
 			break;
 		case CANCEL:
@@ -206,7 +219,7 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 			if (keyState.equals(KeyState.K1) || keyState.equals(KeyState.K4)) {
 				weightController.unRegisterObserver(this);
 				socketHandler.unRegisterObserver(this);
-				System.exit(0); //Skal blive her !
+				System.exit(0); 
 			}
 			break;
 		case SEND:
@@ -232,4 +245,63 @@ public class MainController implements IMainController, ISocketObserver, IWeight
 		String weight = this.currentWeight + "kg";
 		return weight;
 	}
+	/*
+	private String userName;
+	private int userId;
+
+	public void userLogin() {
+	    this.userName = "Ryan";
+	    this.userId = 12;
+	    Scanner scan = new Scanner(System.in);
+
+	    while(true) {
+            socketHandler.sendMessage(new SocketOutMessage("Your name is " + this.userName + " confirm by pressing ENTER"));
+            scan.nextLine();
+            socketHandler.sendMessage(new SocketOutMessage("Your user ID is " + this.userId + " confirm by pressing ENTER"));
+            scan.nextLine();
+            break;
+        }
+
+    }
+    */
+	
+	/*
+	private String batchnummer;
+
+	public void chooseBatch () {
+	    Scanner batchScan = new Scanner(System.in);
+
+	    while (true) {
+	        socketHandler.sendMessage(new SocketOutMessage("Enter batch number: 1234"));
+            batchnummer = batchScan.nextLine();
+	        if (batchnummer.equals("1234")) {
+	            break;
+            }
+            else
+                socketHandler.sendMessage(new SocketOutMessage("Invalid entry, try again"));
+        }
+    }
+	*/
+	
+	/*
+	public String writeToCMD(KeyPress keyPress) {
+		
+		System.out.println("Du er en lort");
+		
+		char[] ms = new char[30];
+		
+		for(int i = 0; i < ms.length; i++) {
+			ms[i] = keyPress.getCharacter();
+			System.out.println(keyPress.getCharacter());
+			weightController.showMessageSecondaryDisplay(ms.toString());	
+		
+		}
+		
+		return ms.toString();
+	}
+  
+  	if(keyPress.getType().equals("SEND")) {
+			socketHandler.sendMessage(new SocketOutMessage(ms));
+		}
+	*/
 }
